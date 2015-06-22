@@ -214,9 +214,7 @@ function camera(following){
 			ctx.setTransform(1, 0, 0, 1, 0, 0);		
 			//canvas 0,0
 			ctx.save();
-				
-				console.log("p angle: "+this.playerAngle );
-				
+								
 				var borderAngle = this.playerAngle + 90;
 				if( borderAngle > 360){
 					borderAngle -= 360;
@@ -226,109 +224,126 @@ function camera(following){
 				
 		
 				var keyAngle =  Math.atan( (canvas.height/2) / (canvas.width/2) )  * 180 / Math.PI;
-				
-				
-			
 				var oppAngle = 90 - keyAngle;
-
 				
+				//top  //p1 on right //34 when stops working
 				
-				
-				
-				//top  
-				if( (-oppAngle < borderAngle && borderAngle < keyAngle) || ( 270 + keyAngle < borderAngle && borderAngle < 360 )  ){
-					console.log( "top: " + borderAngle );
+				 if( ( -oppAngle < borderAngle && borderAngle < oppAngle) || ( 270 + keyAngle < borderAngle && borderAngle < 360 + keyAngle )  ){
 					
+					var tan = Math.tan( ( borderAngle ) * (Math.PI / 180) );
 					
-					
-					
-					
-				}
-				//
-				else if( 180 + keyAngle < borderAngle < 270 + keyAngle){ //  works for 270 degrees.
-					console.log("right: " + borderAngle); //WORK ON.
-					
-					
-					//var tan = Math.tan( (180 - 90 - borderAngle) * (Math.PI / 180) );
-					var tan = Math.tan( (270 - borderAngle ) * (Math.PI / 180) );
-					
-					console.log(tan);
-					var b = canvas.width/2
+					var b = canvas.height/2
 					var a = b * tan;
-					
-					//a is ok. border angle is ok, player angle is ok.
 					
 					ctx.beginPath();
 					
-					//bottom right.
-					ctx.moveTo( canvas.width, canvas.height  );
-					
-					//bottom left
-					ctx.lineTo( 0, canvas.height );
-					
-					if( borderAngle < 270){
-						
-						ctx.lineTo( 0 , canvas.height/2 + a );
-						ctx.lineTo( canvas.width, canvas.height/2 -a );
-						
-					}else{
-						
-						ctx.lineTo( 0 , canvas.height/2 - a );
-						ctx.lineTo( canvas.width, canvas.height/2 + a );
-						
-					}
+					ctx.moveTo( canvas.width, 0  );						
+					ctx.lineTo( canvas.width /2 +a, 0 );
+					ctx.lineTo( canvas.width /2 -a, canvas.height );		//ok		
+					ctx.lineTo( canvas.width , canvas.height ); //ok	
 					
 					
-					
-					
-					
-					ctx.closePath();
-					
+					ctx.closePath();		
 					ctx.stroke();
 					
 					ctx.clip();	
-					ctx.clearRect(0,0,canvas.width,canvas.height);
+					
+					ctx.clearRect(0,0,canvas.width,canvas.height); // clips wrong side....
+					
+					vCtx.putImageData( frame, 0, 0 );		
+					ctx.drawImage( vCanvas, 0, 0 );
+										
+					ctx.restore(); // canvas 0,0. 
+					
+				} 
+				
+				//this works.....
+				if( ( 180 + oppAngle  < borderAngle) && (borderAngle < 270 + keyAngle)){ //  works for 270 degrees.
+				
+					var tan = Math.tan( (270 - borderAngle ) * (Math.PI / 180) );
+					
+	
+					var b = canvas.width/2
+					var a = b * tan;
+
+					ctx.beginPath();					
+					ctx.moveTo( 0, 0  );
+					ctx.lineTo( 0 , canvas.height/2 + a ); //ok		
+					ctx.lineTo( canvas.width, canvas.height/2 -a );		//ok		
+					ctx.lineTo( canvas.width, 0 );
+					
+					
+					ctx.closePath();		
+					ctx.stroke();
+					
+					ctx.clip();	
+					
+					ctx.clearRect(0,0,canvas.width,canvas.height); // clips wrong side....
+					
+					vCtx.putImageData( frame, 0, 0 );		
+					ctx.drawImage( vCanvas, 0, 0 );
+										
+					ctx.restore(); // canvas 0,0. 
+				
+				}
+				 
+				 
+				 //works.....
+				if( 90 + keyAngle < borderAngle && borderAngle < 180 + oppAngle){
+				
+					var tan = Math.tan( ( borderAngle ) * (Math.PI / 180) );
+					
+					var b = canvas.height/2
+					var a = b * tan;
+					
+					ctx.beginPath();		
+					ctx.moveTo( 0, 0  );						
+					ctx.lineTo( canvas.width /2 +a, 0 );
+					ctx.lineTo( canvas.width /2 -a, canvas.height );		//ok		
+					ctx.lineTo( 0 , canvas.height ); //ok	
+					
+					
+					ctx.closePath();		
+					ctx.stroke();
+					
+					ctx.clip();	
+					
+					ctx.clearRect(0,0,canvas.width,canvas.height); // clips wrong side....
+					
+					vCtx.putImageData( frame, 0, 0 );		
+					ctx.drawImage( vCanvas, 0, 0 );
+										
+					ctx.restore(); // canvas 0,0. 
+
+				}
+				
+				//left
+				if( oppAngle  < borderAngle && borderAngle < 90 + keyAngle){
+					
+					var tan = Math.tan( (  180 - 90 - borderAngle   ) * (Math.PI / 180) );
+					
+					var b = canvas.width/2
+					var a = b * tan;
+					
+					ctx.beginPath();		
+					ctx.moveTo( 0, canvas.height  ); //bott left
+					ctx.lineTo( canvas.width , canvas.height ); //bottom right
+					ctx.lineTo( canvas.width, canvas.height/2 - a ); //
+					ctx.lineTo( 0, canvas.height/2 + a ); //
+					
+					ctx.closePath();		
+					ctx.stroke();
+					
+					ctx.clip();	
+					
+					ctx.clearRect(0,0,canvas.width,canvas.height); // clips wrong side....
 					
 					vCtx.putImageData( frame, 0, 0 );		
 					ctx.drawImage( vCanvas, 0, 0 );
 										
 					ctx.restore(); // canvas 0,0.
-				
-				}
-				//bottom
-				else if( 90 + keyAngle < borderAngle && borderAngle < 180 + keyAngle){
-					console.log("bottom: " + borderAngle);
-			
-			
-			
-				}
-				//left
-				else if( keyAngle < borderAngle && borderAngle < 90 + keyAngle){
-					console.log("left: " + borderAngle);
-					
-					
-					
 					
 				}
-				else{
-					console.log(borderAngle);
-					debugger;
-				}
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-
 		};
 		
 		
@@ -360,50 +375,42 @@ function camera(following){
 		
 		this.split = false;
 				
-		//get distance between players.
+		//following 1p? move the camera to 1p
 		if( this.following.length == 1){
+			
 			this.x = this.following[0].x;
+			
 			this.y = this.following[0].y;	
 		}
 		else if( this.following.length == 2){
+			//2 things it's following......
 			
-			//arrows first as it's obj 0!!
+			//distance between the two cords.
 			var xDistance = this.following[0].x - this.following[1].x;
 			var yDistance = this.following[0].y -this.following[1].y;
 			
-			//console.log( "x-dis: "+ xDistance + "     y-dis: " + yDistance );
 			
-			//get angle of one player to the next:
+			
+			//the angle in degrees.
 			this.playerAngle = Math.atan( yDistance / xDistance ) * 180 / Math.PI;
 			var playerDistance = Math.sqrt( xDistance * xDistance + yDistance * yDistance );
 			
 			
-			var a = canvas.height/4;
+			var a = canvas.width/4;
 			var b = canvas.height/4;
 	
-			
-			var beta = 0; //(Math.PI/180) converts Degree Value into Radians
-			var sinbeta = Math.sin(beta); //equals 0! //save overhead! 
-			var cosbeta = Math.cos(beta); //equals 1!
-			
-			//only want to check player angle and player angle + 180!
-			
-
 			
 			var alpha = this.playerAngle * (Math.PI / 180);
 			var sinalpha = Math.sin(alpha);
 			var cosalpha = Math.cos(alpha);
 			
-			var boundryX = (a * cosalpha * cosbeta - b * sinalpha * sinbeta);
-			var boundryY = (a * cosalpha * sinbeta + b * sinalpha * cosbeta);
+			var boundryX = (a * cosalpha * 1);
+			var boundryY = (b * sinalpha * 1);
 			 
 			var boundryDistance = Math.sqrt( boundryX * boundryX + boundryY * boundryY ) * 2;
 			
-			if( playerDistance > boundryDistance){
-				
-				
-				
-				if( xDistance > 0 && yDistance > 0 ){
+			//fix the angles.
+			if( xDistance > 0 && yDistance > 0 ){
 					
 					this.playerAngle +=270;
 				}
@@ -420,27 +427,37 @@ function camera(following){
 					
 					this.playerAngle +=90;
 				}
-				
-								
+			
+			//PLAYER ANGLE IS FINE!! :(
+
+			
+			// boundry distance is like the current diameter.
+			if( playerDistance > boundryDistance){
+							
 				// translats etc.
 				this.x = [];
 				this.y = [];
 				
-				//for(var i = 0; i < this.following.length; i++){
-				//}; 	
 				
-				//I think here is the issue!
-				
-				if(  0 < this.playerAngle < 90 ){
+				//p2 is on the right....
+				if(  0 < this.playerAngle && this.playerAngle < 90 ){
 					
-					this.x[0] = this.following[0].centerX - boundryX; 
+					this.x[0] = this.following[0].centerX + boundryX; 
 					this.y[0] = this.following[0].centerY + boundryY;	
 
-					this.x[1] = this.following[1].centerX + boundryX;
+					this.x[1] = this.following[1].centerX - boundryX;
 					this.y[1] = this.following[1].centerY - boundryY;
+				}
+				else if(  90 < this.playerAngle && this.playerAngle < 180 ){
+					
+					this.x[0] = this.following[0].centerX + boundryX;
+					this.y[0] = this.following[0].centerY + boundryY;	
+
+					this.x[1] = this.following[1].centerX - boundryX;
+					this.y[1] = this.following[1].centerY - boundryY;	
 					
 				}
-				if(  90 < this.playerAngle < 180 ){
+				else if(  180 < this.playerAngle && this.playerAngle < 270 ){
 					
 					this.x[0] = this.following[0].centerX - boundryX; 
 					this.y[0] = this.following[0].centerY - boundryY;	
@@ -448,34 +465,21 @@ function camera(following){
 					this.x[1] = this.following[1].centerX + boundryX;
 					this.y[1] = this.following[1].centerY + boundryY;	
 					
-					
 				}
-				if(  180 < this.playerAngle < 270 ){
+				else if(  270 < this.playerAngle && this.playerAngle < 360 ){
 					
-					this.x[0] = this.following[0].centerX + boundryX; 
+					this.x[0] = this.following[0].centerX - boundryX; 
 					this.y[0] = this.following[0].centerY - boundryY;	
 
-					this.x[1] = this.following[1].centerX - boundryX;
-					this.y[1] = this.following[1].centerY + boundryY;	
-					
-				}
-				if(  270 < this.playerAngle < 360 ){
-					
-					this.x[0] = this.following[0].centerX + boundryX; 
-					this.y[0] = this.following[0].centerY + boundryY;	
-
-					this.x[1] = this.following[1].centerX - boundryX;
-					this.y[1] = this.following[1].centerY - boundryY;
+					this.x[1] = this.following[1].centerX + boundryX;
+					this.y[1] = this.following[1].centerY + boundryY;
 				}
 				else{
-					
-					console.log( this.playerAngle );
-					debugger
+					console.log( this.playerAngle);
+					debugger;
 				}
 				
 				
-				
-
 				this.split = true;
 				
 				
@@ -699,7 +703,7 @@ var following = [hero, hero2];
 var camera = new camera(following);
 
 var gameMasterProps = {
-	debugging:true,
+	debugging:false,
 	camera:camera,
 	children:[ bgImage, worldPistol, hero, hero2 ],
 };
