@@ -1,8 +1,14 @@
 // Create the canvas
+var vCanvas = document.createElement("canvas");
+var vCtx = vCanvas.getContext("2d");
+vCanvas.width = 1000;
+vCanvas.height = 700;
+
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
+canvas.width = 1000;
+canvas.height = 700;
+
 document.body.appendChild(canvas);
 
 function gameMaster( props ){
@@ -21,8 +27,10 @@ function gameMaster( props ){
 		
 		var collisions = [];
 		
+		//update the camera DUH!
 		this.camera.update();
 		
+		//update the children....
 		for(var i = 0; i < this.children.length; i++) {	
 			
 			if( this.children[i].live == false){
@@ -32,8 +40,6 @@ function gameMaster( props ){
 	
 			this.children[i].update(modifier);	
 		};
-		
-	
 		
 		//Works out collisions to some extent......
 		for (var j = 0; j < this.children.length; j++) {		
@@ -56,7 +62,7 @@ function gameMaster( props ){
 												
 						if( touching( objectCords[y], targetCords[u] ) ){
 							
-							console.log("touching");
+							//console.log("touching");
 							collisions.push( [ this.children[q] , this.children[j] ] );	
 						}
 					}
@@ -64,7 +70,7 @@ function gameMaster( props ){
 			};	
 		};
 		
-		
+		//run the collisions
 		for (var i = 0; i < collisions.length; i++) {		
 			collisions[i][0].collide( collisions[i][1] );
 			collisions[i][1].collide( collisions[i][0] );
@@ -73,19 +79,44 @@ function gameMaster( props ){
 	};
 	
 	this.draw = function(){		
+		
+		
+		if( this.camera.split ){
+						
+			for(var i = 0; i < this.camera.x.length; i++){
 				
-		for(var i = 0; i < this.camera.following.length; i++){
+				//canvas 0,0
+				
+				
+				this.camera.draw(i); //gives the camera who to draw for
+				
+				//map 0,0,
+					
+				//draws the children of the game....
+				for (var j = 0; j < this.children.length; j++) {
+					
+					this.children[j].draw();
+					
+				}; 
+				
+				
+				this.camera.end(i);
+				//canvas 0,0
+			}
 			
-			this.camera.draw( i ); //gives the camera who to draw for... MAY NOT BE NEEDED?
+		}else{ //draws avg cam!
 			
-			//draws
+			this.camera.draw(); //gives the camera who to draw for... MAY NOT BE NEEDED?
+			
+			//draws the children of the game....
 			for (var i = 0; i < this.children.length; i++) {	
 				this.children[i].draw();	
 			}; 
-			
-			
-			
-		}
+				
+		};
+
+		//how many things the camera is following...
+		
 		
 		//ignore for now...
 		if( this.debugging ){			
@@ -133,46 +164,217 @@ function gameMaster( props ){
 
 function camera(following){
 	
+	var frame;
+	
 	this.following = following;
 	
 	this.x = []; //this is normall the players XY...
 	this.y = []; //array for each player....
-			
-	
-	this.draw = function(){
-					
+	this.playerAngle = 0;
+		
+	//ok....
+	this.draw = function( j ){
+		
 		var x = canvas.width/2;
 		var y = canvas.height/2;
-		
-		x -= this.x;
-		y -= this.y;
+				
+		if(arguments.length == 0){
+				
+			x -= this.x;
+			y -= this.y;
 
-		ctx.translate( x, y);	
-	}
-		
-	this.update = function(){
-		
-		for(var i = 0; i < this.following.length; i++){
+			ctx.translate( x, y);
+				
+		}else{
 			
-			var x = 0;
-			var y = 0;
-			
-			this.x[i] = this.following[i].x;
-			this.y[i] = this.following[i].y;
-									
+			x -= this.x[j];
+			y -= this.y[j];
+		
+			ctx.translate( x, y);
 		};
 		
-		//XY now has the points of both players
-		//WORK OUT WHERE THE CAMERA WILL BE OR SPLIT THE SCREEN!
-		
-		//get distance between players.
-		if( this.following.length == 2){
+	}
+	
+	this.end = function( j ){
+
+		if( j == 0 ){
 			
+			//get the canvas...
+			
+			//clear and reset canvas...
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+		
+			//this should be working...
+			frame = ctx.getImageData( 0,0, canvas.width, canvas.height );
+			
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+						
+		} else if( j == this.x.length-1){
+			
+			ctx.setTransform(1, 0, 0, 1, 0, 0);		
+			//canvas 0,0
+			ctx.save();
+				
+				console.log("p angle: "+this.playerAngle );
+				
+				var borderAngle = this.playerAngle + 90;
+				if( borderAngle > 360){
+					borderAngle -= 360;
+				}else if (borderAngle < 0){
+					borderAngle += 360;
+				};
+				
+		
+				var keyAngle =  Math.atan( (canvas.height/2) / (canvas.width/2) )  * 180 / Math.PI;
+				
+				
+			
+				var oppAngle = 90 - keyAngle;
+
+				
+				
+				
+				
+				//top  
+				if( (-oppAngle < borderAngle && borderAngle < keyAngle) || ( 270 + keyAngle < borderAngle && borderAngle < 360 )  ){
+					console.log( "top: " + borderAngle );
+					
+					
+					
+					
+					
+				}
+				//
+				else if( 180 + keyAngle < borderAngle < 270 + keyAngle){ //  works for 270 degrees.
+					console.log("right: " + borderAngle); //WORK ON.
+					
+					
+					//var tan = Math.tan( (180 - 90 - borderAngle) * (Math.PI / 180) );
+					var tan = Math.tan( (270 - borderAngle ) * (Math.PI / 180) );
+					
+					console.log(tan);
+					var b = canvas.width/2
+					var a = b * tan;
+					
+					//a is ok. border angle is ok, player angle is ok.
+					
+					ctx.beginPath();
+					
+					//bottom right.
+					ctx.moveTo( canvas.width, canvas.height  );
+					
+					//bottom left
+					ctx.lineTo( 0, canvas.height );
+					
+					if( borderAngle < 270){
+						
+						ctx.lineTo( 0 , canvas.height/2 + a );
+						ctx.lineTo( canvas.width, canvas.height/2 -a );
+						
+					}else{
+						
+						ctx.lineTo( 0 , canvas.height/2 - a );
+						ctx.lineTo( canvas.width, canvas.height/2 + a );
+						
+					}
+					
+					
+					
+					
+					
+					ctx.closePath();
+					
+					ctx.stroke();
+					
+					ctx.clip();	
+					ctx.clearRect(0,0,canvas.width,canvas.height);
+					
+					vCtx.putImageData( frame, 0, 0 );		
+					ctx.drawImage( vCanvas, 0, 0 );
+										
+					ctx.restore(); // canvas 0,0.
+				
+				}
+				//bottom
+				else if( 90 + keyAngle < borderAngle && borderAngle < 180 + keyAngle){
+					console.log("bottom: " + borderAngle);
+			
+			
+			
+				}
+				//left
+				else if( keyAngle < borderAngle && borderAngle < 90 + keyAngle){
+					console.log("left: " + borderAngle);
+					
+					
+					
+					
+				}
+				else{
+					console.log(borderAngle);
+					debugger;
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+
+		};
+		
+		
+		/* var ellipse = calculateEllipse( canvas.width/2, canvas.height /4 , canvas.width/4, canvas.height/4, 0, 8);
+
+		ctx.beginPath();
+		ctx.lineWidth="1";
+		ctx.strokeStyle="blue"; // blue path	
+														
+		for( var h = 0; h < ellipse.length; h++){							
+			if( h == 0){
+				
+				ctx.moveTo( ellipse[h].x, ellipse[h].y );
+				
+			}else if( h == ellipse.length -1){
+				
+				ctx.lineTo( ellipse[h].x, ellipse[h].y);
+					
+			}else{
+					ctx.lineTo( ellipse[h].x, ellipse[h].y);
+			}		
+		}
+				
+		ctx.closePath();
+		ctx.stroke(); // Draw it */
+	};
+	
+	this.update = function(){
+		
+		this.split = false;
+				
+		//get distance between players.
+		if( this.following.length == 1){
+			this.x = this.following[0].x;
+			this.y = this.following[0].y;	
+		}
+		else if( this.following.length == 2){
+			
+			//arrows first as it's obj 0!!
 			var xDistance = this.following[0].x - this.following[1].x;
 			var yDistance = this.following[0].y -this.following[1].y;
 			
+			//console.log( "x-dis: "+ xDistance + "     y-dis: " + yDistance );
+			
 			//get angle of one player to the next:
-			var playerAngle = Math.atan( yDistance / xDistance ) * 180 / Math.PI;
+			this.playerAngle = Math.atan( yDistance / xDistance ) * 180 / Math.PI;
 			var playerDistance = Math.sqrt( xDistance * xDistance + yDistance * yDistance );
 			
 			
@@ -185,23 +387,105 @@ function camera(following){
 			var cosbeta = Math.cos(beta); //equals 1!
 			
 			//only want to check player angle and player angle + 180!
-				
-			var alpha = playerAngle * (Math.PI / 180);
+			
+
+			
+			var alpha = this.playerAngle * (Math.PI / 180);
 			var sinalpha = Math.sin(alpha);
 			var cosalpha = Math.cos(alpha);
 			
-			var boundryX = 0 + (a * cosalpha * cosbeta - b * sinalpha * sinbeta);
-			var boundryY = 0 + (a * cosalpha * sinbeta + b * sinalpha * cosbeta);
+			var boundryX = (a * cosalpha * cosbeta - b * sinalpha * sinbeta);
+			var boundryY = (a * cosalpha * sinbeta + b * sinalpha * cosbeta);
 			 
 			var boundryDistance = Math.sqrt( boundryX * boundryX + boundryY * boundryY ) * 2;
 			
 			if( playerDistance > boundryDistance){
 				
-				console.log("split screen!");
+				
+				
+				if( xDistance > 0 && yDistance > 0 ){
+					
+					this.playerAngle +=270;
+				}
+				else if( xDistance > 0 && yDistance < 0 ){
+					
+					this.playerAngle += 270; 
+				}
+				else if( xDistance < 0 && yDistance > 0 ){
+					
+					this.playerAngle += 90;
+						
+				}
+				else if( xDistance < 0 && yDistance < 0 ){
+					
+					this.playerAngle +=90;
+				}
+				
+								
+				// translats etc.
+				this.x = [];
+				this.y = [];
+				
+				//for(var i = 0; i < this.following.length; i++){
+				//}; 	
+				
+				//I think here is the issue!
+				
+				if(  0 < this.playerAngle < 90 ){
+					
+					this.x[0] = this.following[0].centerX - boundryX; 
+					this.y[0] = this.following[0].centerY + boundryY;	
+
+					this.x[1] = this.following[1].centerX + boundryX;
+					this.y[1] = this.following[1].centerY - boundryY;
+					
+				}
+				if(  90 < this.playerAngle < 180 ){
+					
+					this.x[0] = this.following[0].centerX - boundryX; 
+					this.y[0] = this.following[0].centerY - boundryY;	
+
+					this.x[1] = this.following[1].centerX + boundryX;
+					this.y[1] = this.following[1].centerY + boundryY;	
+					
+					
+				}
+				if(  180 < this.playerAngle < 270 ){
+					
+					this.x[0] = this.following[0].centerX + boundryX; 
+					this.y[0] = this.following[0].centerY - boundryY;	
+
+					this.x[1] = this.following[1].centerX - boundryX;
+					this.y[1] = this.following[1].centerY + boundryY;	
+					
+				}
+				if(  270 < this.playerAngle < 360 ){
+					
+					this.x[0] = this.following[0].centerX + boundryX; 
+					this.y[0] = this.following[0].centerY + boundryY;	
+
+					this.x[1] = this.following[1].centerX - boundryX;
+					this.y[1] = this.following[1].centerY - boundryY;
+				}
+				else{
+					
+					console.log( this.playerAngle );
+					debugger
+				}
+				
+				
+				
+
+				this.split = true;
+				
+				
 			}else{
 				
+				var x = 0;
+				var y = 0;
+				
 				for (var i = 0; i < this.following.length; i++) {
-					
+								
 					x += this.following[i].centerX;
 					y += this.following[i].centerY; 
 				}
@@ -211,23 +495,21 @@ function camera(following){
 				
 			};
 			
-				
+		}else{
+			//average all....
+			var x = 0;
+			var y = 0;
 			
-			
+			for (var i = 0; i < this.following.length; i++) {
+							
+				x += this.following[i].centerX;
+				y += this.following[i].centerY; 
+			}
 		
+			this.x = x / this.following.length;
+			this.y = y / this.following.length; 
 				
-		
 		};
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 	};
 	
 	//for debugging, ignore....
@@ -296,9 +578,6 @@ function map(imageLoc){
 	}	
 };
 
-
-
-
 // Handle keyboard controls
 var keysDown = {};
 
@@ -338,55 +617,12 @@ var render = function () {
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	
 	ctx.save();
-	
-
 	Game.draw();
-		
-	//debugger;
 	
-	var ellipse = calculateEllipse( canvas.width/2, canvas.height /2 , canvas.width/3, canvas.height/3, 0, 8);
-	
-			ctx.beginPath();
-			ctx.lineWidth="1";
-			ctx.strokeStyle="blue"; // blue path	
-													
-			for( var h = 0; h < ellipse.length; h++){							
-				if( h == 0){
-				
-					ctx.moveTo( ellipse[h].x, ellipse[h].y );
-				
-				}else if( h == ellipse.length -1){
-					ctx.lineTo( ellipse[h].x, ellipse[h].y);
-				
-				}else{
-					ctx.lineTo( ellipse[h].x, ellipse[h].y);
-				}		
-			}
 			
-			ctx.closePath();
-			ctx.stroke(); // Draw it
-	
-	ctx.restore();
-		
-
-	
 };
 
-
-/*
-* This functions returns an array containing 36 points to draw an
-* ellipse.
-*
-* @param x {double} X coordinate
-* @param y {double} Y coordinate
-* @param a {double} Semimajor axis
-* @param b {double} Semiminor axis
-* @param angle {double} Angle of the ellipse
-*/
-
-
-function calculateEllipse(x, y, a, b, angle, steps) 
-{
+function calculateEllipse(x, y, a, b, angle, steps) {
   if (steps == null)
     steps = 36;
   var points = [];
@@ -411,8 +647,6 @@ function calculateEllipse(x, y, a, b, angle, steps)
  
   return points;
 }
-
-
 
 // The main game loop
 var main = function () {
@@ -444,8 +678,6 @@ var pistolWorldProps = {
 	frameX:0,
 };
 
-
-
 //create background
 var bgImage = new map( "images/background.png" );
 
@@ -473,9 +705,6 @@ var gameMasterProps = {
 };
 
 var Game = new gameMaster( gameMasterProps );
-
-
-	
 
 // Cross-browser support for requestAnimationFrame
 var w = window;
