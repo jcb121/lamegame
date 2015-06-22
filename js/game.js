@@ -344,31 +344,9 @@ function camera(following){
 					ctx.restore(); // canvas 0,0.
 					
 				}
-		};
-		
-		
-		/* var ellipse = calculateEllipse( canvas.width/2, canvas.height /4 , canvas.width/4, canvas.height/4, 0, 8);
-
-		ctx.beginPath();
-		ctx.lineWidth="1";
-		ctx.strokeStyle="blue"; // blue path	
-														
-		for( var h = 0; h < ellipse.length; h++){							
-			if( h == 0){
 				
-				ctx.moveTo( ellipse[h].x, ellipse[h].y );
 				
-			}else if( h == ellipse.length -1){
-				
-				ctx.lineTo( ellipse[h].x, ellipse[h].y);
-					
-			}else{
-					ctx.lineTo( ellipse[h].x, ellipse[h].y);
-			}		
-		}
-				
-		ctx.closePath();
-		ctx.stroke(); // Draw it */
+		};	
 	};
 	
 	this.update = function(){
@@ -622,6 +600,31 @@ var render = function () {
 	
 	ctx.save();
 	Game.draw();
+	
+	ctx.restore();
+	
+	var ellipse = calculateEllipse( canvas.width/2, canvas.height /2 , canvas.width/4, canvas.height/4, 0, 36);
+
+	ctx.beginPath();
+	ctx.lineWidth="1";
+	ctx.strokeStyle="blue"; // blue path	
+													
+	for( var h = 0; h < ellipse.length; h++){							
+		if( h == 0){
+			
+			ctx.moveTo( ellipse[h].x, ellipse[h].y );
+			
+		}else if( h == ellipse.length -1){
+			
+			ctx.lineTo( ellipse[h].x, ellipse[h].y);
+				
+		}else{
+				ctx.lineTo( ellipse[h].x, ellipse[h].y);
+		}		
+	}
+			
+	ctx.closePath();
+	ctx.stroke(); // Draw it 
 	
 			
 };
