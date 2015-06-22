@@ -7,42 +7,46 @@ document.body.appendChild(canvas);
 
 function gameMaster( props ){
 	
-	this.debugging = props.debugging;
+	this.children = [];
 	
-	this.objects = [];
-	
+	for (var attrname in props) { 
+		this[attrname] = props[attrname]; 
+	}
+		
 	this.addObject = function(object){		
-		this.objects.push(object);
-	};
+		this.children.push(object);
+	};	
 	
 	this.update = function(modifier){		
 		
 		var collisions = [];
 		
-		for(var i = 0; i < this.objects.length; i++) {	
+		this.camera.update();
+		
+		for(var i = 0; i < this.children.length; i++) {	
 			
-			if( this.objects[i].live == false){
-				this.objects.splice(i,1);
+			if( this.children[i].live == false){
+				this.children.splice(i,1);
 				continue;
 			}; 
 	
-			this.objects[i].update(modifier);	
+			this.children[i].update(modifier);	
 		};
 		
 	
 		
-		//how many objects in game master....
-		for (var j = 0; j < this.objects.length; j++) {		
+		//Works out collisions to some extent......
+		for (var j = 0; j < this.children.length; j++) {		
 
-			if( this.objects[j].hitboxCords == undefined ){ continue;};	
-			var objectCords = this.objects[j].hitboxCords ;
+			if( this.children[j].hitboxCords == undefined ){ continue;};	
+			var objectCords = this.children[j].hitboxCords ;
 			
 			
-			//how many objects in game master.....
-			for (var q = 0; q < this.objects.length; q++) {		
-				if(j >= q || this.objects[q].hitboxCords == undefined ){continue;}						
+			//how many children in game master.....
+			for (var q = 0; q < this.children.length; q++) {		
+				if(j >= q || this.children[q].hitboxCords == undefined ){continue;}						
 				
-				var targetCords = this.objects[q].hitboxCords;
+				var targetCords = this.children[q].hitboxCords;
 				
 				//how many hitboxes the object has				
 				for( var y = 0; y < objectCords.length; y++ ){
@@ -53,7 +57,7 @@ function gameMaster( props ){
 						if( touching( objectCords[y], targetCords[u] ) ){
 							
 							console.log("touching");
-							collisions.push( [ this.objects[q] , this.objects[j] ] );	
+							collisions.push( [ this.children[q] , this.children[j] ] );	
 						}
 					}
 				}
@@ -61,30 +65,37 @@ function gameMaster( props ){
 		};
 		
 		
-		for (var i = 0; i < collisions.length; i++) {
-			
+		for (var i = 0; i < collisions.length; i++) {		
 			collisions[i][0].collide( collisions[i][1] );
 			collisions[i][1].collide( collisions[i][0] );
-
 		};
 		
 	};
 	
 	this.draw = function(){		
+				
+		for(var i = 0; i < this.camera.following.length; i++){
+			
+			this.camera.draw( i ); //gives the camera who to draw for... MAY NOT BE NEEDED?
+			
+			//draws
+			for (var i = 0; i < this.children.length; i++) {	
+				this.children[i].draw();	
+			}; 
+			
+			
+			
+		}
 		
-		for (var i = 0; i < this.objects.length; i++) {	
-			this.objects[i].draw();	
-		};
-		
-		
+		//ignore for now...
 		if( this.debugging ){			
 			//loop through items....
 			
-			for (var i = 0; i < this.objects.length; i++) {	
+			for (var i = 0; i < this.children.length; i++) {	
 				
-				if( this.objects[i].hitboxCords == undefined ){ continue;};	
+				if( this.children[i].hitboxCords == undefined ){ continue;};	
 								
-				var boxes = this.objects[i].hitboxCords;
+				var boxes = this.children[i].hitboxCords;
 	
 				for( var k = 0; k < boxes.length; k++){
 					
@@ -120,63 +131,106 @@ function gameMaster( props ){
 };
 
 
-
-
-
 function camera(following){
 	
 	this.following = following;
-	this.x;
-	this.y;
-		
-	this.offsetx;
-	this.offsety;
+	
+	this.x = []; //this is normall the players XY...
+	this.y = []; //array for each player....
+			
 	
 	this.draw = function(){
-		
-				
+					
 		var x = canvas.width/2;
 		var y = canvas.height/2;
-		//x y are at mid points
 		
 		x -= this.x;
 		y -= this.y;
 
 		ctx.translate( x, y);	
 	}
-	
-	this.gotoWorld = function(){
 		
-		var x = canvas.width/2;
-		var y = canvas.height/2;
-		//x y are at mid points
-		
-		x -= this.x;
-		y -= this.y;
-		
-		ctx.translate( x, y);
-		
-	};
-	
 	this.update = function(){
 		
-		var x = 0;
-		var y = 0;
+		for(var i = 0; i < this.following.length; i++){
+			
+			var x = 0;
+			var y = 0;
+			
+			this.x[i] = this.following[i].x;
+			this.y[i] = this.following[i].y;
+									
+		};
 		
-		//length is 1
-		var arrayLength = this.following.length;
+		//XY now has the points of both players
+		//WORK OUT WHERE THE CAMERA WILL BE OR SPLIT THE SCREEN!
 		
-		for (var i = 0; i < arrayLength; i++) {
-				
-			x += this.following[i].centerX;
-			y += this.following[i].centerY; 
-		}
-		this.x = x / arrayLength;
-		this.y = y / arrayLength;
-		
+		//get distance between players.
+		if( this.following.length == 2){
+			
+			var xDistance = this.following[0].x - this.following[1].x;
+			var yDistance = this.following[0].y -this.following[1].y;
+			
+			//get angle of one player to the next:
+			var playerAngle = Math.atan( yDistance / xDistance ) * 180 / Math.PI;
+			var playerDistance = Math.sqrt( xDistance * xDistance + yDistance * yDistance );
+			
+			
+			var a = canvas.height/4;
+			var b = canvas.height/4;
 	
-	};
+			
+			var beta = 0; //(Math.PI/180) converts Degree Value into Radians
+			var sinbeta = Math.sin(beta); //equals 0! //save overhead! 
+			var cosbeta = Math.cos(beta); //equals 1!
+			
+			//only want to check player angle and player angle + 180!
+				
+			var alpha = playerAngle * (Math.PI / 180);
+			var sinalpha = Math.sin(alpha);
+			var cosalpha = Math.cos(alpha);
+			
+			var boundryX = 0 + (a * cosalpha * cosbeta - b * sinalpha * sinbeta);
+			var boundryY = 0 + (a * cosalpha * sinbeta + b * sinalpha * cosbeta);
+			 
+			var boundryDistance = Math.sqrt( boundryX * boundryX + boundryY * boundryY ) * 2;
+			
+			if( playerDistance > boundryDistance){
+				
+				console.log("split screen!");
+			}else{
+				
+				for (var i = 0; i < this.following.length; i++) {
+					
+					x += this.following[i].centerX;
+					y += this.following[i].centerY; 
+				}
+			
+				this.x = x / this.following.length;
+				this.y = y / this.following.length; 
+				
+			};
+			
+				
+			
+			
 		
+				
+		
+		};
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	};
+	
+	//for debugging, ignore....
 	this.drawTarget = function(){
 		
 		ctx.beginPath();
@@ -203,8 +257,7 @@ function camera(following){
 			ctx.stroke();
 			
 		}
-	}
-	
+	}	
 	this.drawCords = function(){
 		ctx.fillText( "camera.x:" + this.x + " camera.y:" + this.y,50,100);	
 				
@@ -288,35 +341,30 @@ var render = function () {
 	
 
 	Game.draw();
-	
-	
-	
-	var ellipse = calculateEllipse( canvas.width/2, canvas.height /2 , canvas.width/4, canvas.height/4, 0, 8);
-	
-	ctx.beginPath();
-	ctx.lineWidth="1";
-	ctx.strokeStyle="blue"; // blue path	
-											
-	for( var h = 0; h < ellipse.length; h++){
-								
-		if( h == 0){
 		
-			ctx.moveTo( ellipse[h].x, ellipse[h].y );
-		
-		}else if( h == ellipse.length -1){
-			ctx.lineTo( ellipse[h].x, ellipse[h].y);
-		
-		}else{
-			ctx.lineTo( ellipse[h].x, ellipse[h].y);
-		}		
-	}
-	
-	ctx.closePath();
-	ctx.stroke(); // Draw it	
-	
-	
 	//debugger;
 	
+	var ellipse = calculateEllipse( canvas.width/2, canvas.height /2 , canvas.width/3, canvas.height/3, 0, 8);
+	
+			ctx.beginPath();
+			ctx.lineWidth="1";
+			ctx.strokeStyle="blue"; // blue path	
+													
+			for( var h = 0; h < ellipse.length; h++){							
+				if( h == 0){
+				
+					ctx.moveTo( ellipse[h].x, ellipse[h].y );
+				
+				}else if( h == ellipse.length -1){
+					ctx.lineTo( ellipse[h].x, ellipse[h].y);
+				
+				}else{
+					ctx.lineTo( ellipse[h].x, ellipse[h].y);
+				}		
+			}
+			
+			ctx.closePath();
+			ctx.stroke(); // Draw it
 	
 	ctx.restore();
 		
@@ -350,7 +398,7 @@ function calculateEllipse(x, y, a, b, angle, steps)
  
   for (var i = 0; i < 360; i += 360 / steps) 
   {
-    var alpha = i * (Math.PI / 180) ;
+    var alpha = i * (Math.PI / 180);
     var sinalpha = Math.sin(alpha);
     var cosalpha = Math.cos(alpha);
  
@@ -403,7 +451,7 @@ var bgImage = new map( "images/background.png" );
 
 //create Player Object
 var hero = new player( heroProps );
-//var hero2 = new player( hero2Props );
+var hero2 = new player( hero2Props );
 
 
 //create weapon objects.
@@ -414,27 +462,19 @@ var shotgun = new tool(shotGunProps);
 
 var worldPistol = new worldProp( pistolWorldProps );
 
-var following = [hero];
+var following = [hero, hero2];
 
 var camera = new camera(following);
 
 var gameMasterProps = {
 	debugging:true,
+	camera:camera,
+	children:[ bgImage, worldPistol, hero, hero2 ],
 };
 
 var Game = new gameMaster( gameMasterProps );
-	
-	Game.addObject( camera );
-	Game.addObject( bgImage );
-	Game.addObject( worldPistol );
-	Game.addObject( hero );
-	
-	
-	
-	//Game.addObject(pistol1handed);
-	//Game.addObject(pistol2handed);
-	//Game.addObject(hero2);
-	
+
+
 	
 
 // Cross-browser support for requestAnimationFrame
