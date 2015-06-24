@@ -11,13 +11,13 @@ var heroAnimations ={
 		minTime1:80,
 		importance1:1,
 		layer1:[ [1,1],[2,2] ],
-		
+			
 		hitBoxes:[
-			[ { x:-18, y:-5 }, { x:-5, y:10 } ], //1
-			[ { x:-5, y:-10 }, { x:5, y:10 } ], //2
-			[ { x:5, y:-5 }, { x:18, y:10 } ], //3
+			{ x:-15, y:-5, width:10, height:10 },
+			{ x:-5, y:-15, width:10, height:25 },
+			{ x:5, y:-5, width:10, height:10 }
 		],
-			},
+	},
 	
 	walking:{
 	
@@ -32,9 +32,9 @@ var heroAnimations ={
 		layer1:[ [2,1],[1,2],[1,3],[2,3] ],
 		
 		hitBoxes:[
-			[ { x:-18, y:-5 }, { x:-5, y:10 } ], //1
-			[ { x:-5, y:-10 }, { x:5, y:10 } ], //2
-			[ { x:5, y:-5 }, { x:18, y:10 } ], //3
+			{ x:-15, y:-5, width:10, height:10 },
+			{ x:-5, y:-15, width:10, height:25 },
+			{ x:5, y:-5, width:10, height:10 }
 		],
 		
 	},
@@ -42,9 +42,9 @@ var heroAnimations ={
 	twoHanded:{
 		
 		hitBoxes:[
-			[ { x:-15, y:-5 }, { x:-5, y:10 } ], //1
-			[ { x:-5, y:-20 }, { x:5, y:12 } ], //2
-			[ { x:5, y:-5 }, { x:10, y:8 } ], //3
+			{ x:-15, y:-5, width:10, height:10 },
+			{ x:-5, y:-15, width:10, height:25 },
+			{ x:5, y:-5, width:10, height:10 }
 		],
 		
 		layerTime1:500,
@@ -56,9 +56,9 @@ var heroAnimations ={
 	twoHandedB:{
 		
 		hitBoxes:[
-			[ { x:-15, y:-5 }, { x:-5, y:10 } ], //1
-			[ { x:-5, y:-13 }, { x:5, y:10 } ], //2
-			[ { x:5, y:-5 }, { x:10, y:10 } ], //3
+			{ x:-15, y:-5, width:10, height:10 },
+			{ x:-5, y:-15, width:10, height:25 },
+			{ x:5, y:-5, width:10, height:15 }
 		],
 		
 		layerTime1:500,
@@ -70,9 +70,9 @@ var heroAnimations ={
 	oneHanded:{
 		
 		hitBoxes:[
-			[ { x:-18, y:0 }, { x:-5, y:17 } ], //1
-			[ { x:-5, y:-10 }, { x:5, y:15 } ], //2
-			[ { x:5, y:-20 }, { x:16, y:10 } ], //3
+			{ x:-15, y:-5, width:10, height:20 },
+			{ x:-5, y:-10, width:10, height:25 },
+			{ x:5, y:-20, width:10, height:25 }
 		],
 		
 		layerTime1:80,

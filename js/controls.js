@@ -16,6 +16,7 @@ var heroControls = {
 	slot4:100,
 	slot5:101,
 }
+
 var hero2Controls = {
 	
 	left:65,
@@ -25,8 +26,6 @@ var hero2Controls = {
 	shoot:32,
 }
 
-
-	
 var heroProps = {
 	
 	ai:false,
@@ -43,7 +42,6 @@ var heroProps = {
 	controls:heroControls,
 	
 };
-
 
 var hero2Props = {
 	

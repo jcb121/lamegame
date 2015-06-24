@@ -11,6 +11,36 @@ canvas.height = 700;
 
 document.body.appendChild(canvas);
 
+
+/* var hasGP = false;
+ 
+function canGame() {
+   return "getGamepads" in navigator;
+} */
+ 
+    
+ 
+ 
+
+
+
+
+
+
+
+
+function worldMaster ( props ){
+	
+	this.update = function(time){
+		
+	}
+	this.draw = function(){
+		
+		
+	}
+	
+}
+
 function gameMaster( props ){
 	
 	this.children = [];
@@ -42,17 +72,28 @@ function gameMaster( props ){
 		};
 		
 		//Works out collisions to some extent......
+		
+		
+		//for the amount of objects in gameMaster.....
 		for (var j = 0; j < this.children.length; j++) {		
-
+			
+			//if the object doesn't have a kitbox, skip it.
 			if( this.children[j].hitboxCords == undefined ){ continue;};	
+			
+			//all of the objects hit boxes.
 			var objectCords = this.children[j].hitboxCords ;
 			
 			
-			//how many children in game master.....
+			//for the amount of objects in gameMaster.....
 			for (var q = 0; q < this.children.length; q++) {		
+				//skip if it's the smae object or undefined.
 				if(j >= q || this.children[q].hitboxCords == undefined ){continue;}						
 				
+				//all of the targets hitboxes.
 				var targetCords = this.children[q].hitboxCords;
+				
+				
+				
 				
 				//how many hitboxes the object has				
 				for( var y = 0; y < objectCords.length; y++ ){
@@ -118,41 +159,35 @@ function gameMaster( props ){
 		//how many things the camera is following...
 		
 		
-		//ignore for now...
+	
 		if( this.debugging ){			
-			//loop through items....
 			
+			ctx.beginPath();
+			ctx.arc(0, 0, 2, 0, Math.PI*2, true); 
+			ctx.closePath();
+			ctx.fill();
+			
+			//for every child...
 			for (var i = 0; i < this.children.length; i++) {	
 				
+				//skip if not boxes.
 				if( this.children[i].hitboxCords == undefined ){ continue;};	
-								
+				
+				//get the current boxes
 				var boxes = this.children[i].hitboxCords;
-	
+								
+				//for every box
 				for( var k = 0; k < boxes.length; k++){
 					
+					//get the current box
 					var box = boxes[k];
 					
-					ctx.beginPath();
-					ctx.lineWidth="1";
-					ctx.strokeStyle="blue"; // blue path	
-															
-					for( var h = 0; h < box.length; h++){
-												
-						if( h == 0){
-						
-							ctx.moveTo( box[h].x, box[h].y );
-						
-						}else if( h == box.length -1){
-							ctx.lineTo( box[h].x, box[h].y);
-						
-						}else{
-							ctx.lineTo( box[h].x, box[h].y);
-					
-						}		
-					}
-					
-					ctx.closePath();
-					ctx.stroke(); // Draw it						
+					ctx.save();	
+						ctx.translate(box.x, box.y);
+						ctx.rotate( box.bearing );
+						ctx.rect( 0 - box.width/2, 0 - box.height/2, box.width, box.height);
+						ctx.stroke();
+					ctx.restore();				
 				}
 			}	
 		}	
@@ -160,7 +195,6 @@ function gameMaster( props ){
 	
 	//console.log(this);
 };
-
 
 function camera(following){
 	
@@ -391,23 +425,21 @@ function camera(following){
 			if( xDistance > 0 && yDistance > 0 ){
 					
 					this.playerAngle +=270;
-				}
-				else if( xDistance > 0 && yDistance < 0 ){
+			}
+			else if( xDistance > 0 && yDistance < 0 ){
 					
-					this.playerAngle += 270; 
-				}
-				else if( xDistance < 0 && yDistance > 0 ){
+				this.playerAngle += 270; 
+			}
+			else if( xDistance < 0 && yDistance > 0 ){
 					
-					this.playerAngle += 90;
-						
-				}
-				else if( xDistance < 0 && yDistance < 0 ){
+				this.playerAngle += 90;
 					
-					this.playerAngle +=90;
-				}
-			
-			//PLAYER ANGLE IS FINE!! :(
-
+			}
+			else if( xDistance < 0 && yDistance < 0 ){
+				
+				this.playerAngle +=90;
+			}
+					
 			
 			// boundry distance is like the current diameter.
 			if( playerDistance > boundryDistance){
@@ -420,37 +452,38 @@ function camera(following){
 				//p2 is on the right....
 				if(  0 < this.playerAngle && this.playerAngle < 90 ){
 					
-					this.x[0] = this.following[0].centerX + boundryX; 
-					this.y[0] = this.following[0].centerY + boundryY;	
+					this.x[0] = this.following[0].x + boundryX; 
+					this.y[0] = this.following[0].y + boundryY;	
 
-					this.x[1] = this.following[1].centerX - boundryX;
-					this.y[1] = this.following[1].centerY - boundryY;
+					this.x[1] = this.following[1].x - boundryX;
+					this.y[1] = this.following[1].y - boundryY;
+					
 				}
 				else if(  90 < this.playerAngle && this.playerAngle < 180 ){
 					
-					this.x[0] = this.following[0].centerX + boundryX;
-					this.y[0] = this.following[0].centerY + boundryY;	
+					this.x[0] = this.following[0].x + boundryX;
+					this.y[0] = this.following[0].y + boundryY;	
 
-					this.x[1] = this.following[1].centerX - boundryX;
-					this.y[1] = this.following[1].centerY - boundryY;	
+					this.x[1] = this.following[1].x - boundryX;
+					this.y[1] = this.following[1].y - boundryY;	
 					
 				}
 				else if(  180 < this.playerAngle && this.playerAngle < 270 ){
 					
-					this.x[0] = this.following[0].centerX - boundryX; 
-					this.y[0] = this.following[0].centerY - boundryY;	
+					this.x[0] = this.following[0].x - boundryX; 
+					this.y[0] = this.following[0].y - boundryY;	
 
-					this.x[1] = this.following[1].centerX + boundryX;
-					this.y[1] = this.following[1].centerY + boundryY;	
+					this.x[1] = this.following[1].x + boundryX;
+					this.y[1] = this.following[1].y + boundryY;	
 					
 				}
 				else if(  270 < this.playerAngle && this.playerAngle < 360 ){
 					
-					this.x[0] = this.following[0].centerX - boundryX; 
-					this.y[0] = this.following[0].centerY - boundryY;	
+					this.x[0] = this.following[0].x - boundryX; 
+					this.y[0] = this.following[0].y - boundryY;	
 
-					this.x[1] = this.following[1].centerX + boundryX;
-					this.y[1] = this.following[1].centerY + boundryY;
+					this.x[1] = this.following[1].x + boundryX;
+					this.y[1] = this.following[1].y + boundryY;
 				}
 				else{
 					console.log( this.playerAngle);
@@ -468,8 +501,8 @@ function camera(following){
 				
 				for (var i = 0; i < this.following.length; i++) {
 								
-					x += this.following[i].centerX;
-					y += this.following[i].centerY; 
+					x += this.following[i].x;
+					y += this.following[i].y; 
 				}
 			
 				this.x = x / this.following.length;
@@ -484,8 +517,8 @@ function camera(following){
 			
 			for (var i = 0; i < this.following.length; i++) {
 							
-				x += this.following[i].centerX;
-				y += this.following[i].centerY; 
+				x += this.following[i].x;
+				y += this.following[i].y; 
 			}
 		
 			this.x = x / this.following.length;
@@ -563,6 +596,7 @@ function map(imageLoc){
 // Handle keyboard controls
 var keysDown = {};
 
+
 addEventListener("keydown", function (e) {
 	keysDown[e.keyCode] = true;
 }, false);
@@ -571,24 +605,108 @@ addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
 
-var gameReady = false;
-var init = function () {
+addEventListener("gamepadconnected", function(e) { 
+	gamepadHandler(e, true); 
+}, false);
+
+addEventListener("gamepaddisconnected", function(e) { 
+	gamepadHandler(e, false); 
+}, false); 
+
+
+var mousedown = false;
+var mousemove = false;
+
+addEventListener("mousedown", function(e) { 
 	
+	//console.log(e);
+	
+	mousedown = e;
+	
+}, false); 
+
+addEventListener("mouseup", function(e) { 
+	
+	mousedown = false;
+	
+}, false); 
+
+addEventListener("mousemove", function(e) { 
+	
+	//console.log(e);
+	
+	mousemove = e;
+	
+}, false); 
+
+
+
+
+
+
+var gameReady = false;
+
+var init = function () {	
 	if(hero.ready && gameReady == false){
 
-		if(hero.start()){
+		/* if(hero.start()){
 			
 			gameReady = true;
 			//monster.startRand();
 			//lameHero.startRand();
-		}
+		} */
 	}
 };
+
+
+
+
+
+var gamepads = [];
+
+function gamepadHandler(event, connecting) {
+  
+  var gamepad = event.gamepad;
+  // Note:
+  //gamepad = navigator.getGamepads()[gamepad.index];
+
+	if (connecting) {
+		
+		gamepads[gamepad.index] = gamepad;
+
+	} else {
+	  
+		gamepads.splice( gamepad.index, 1);
+	}
+}
+
+
+
+
+
+
 
 // Update game objects
 var update = function (modifier) {
 	
 	Game.update(modifier);
+	
+	
+	/* for( var i = 0; i < gamepads.length; i++){
+		
+		console.log( gamepads[i] );
+		
+		for( var j = 0; j < gamepads[i].buttons.length; j++ ){	
+			if( gamepads[i].buttons[j].pressed ){
+				console.log( "button" + j, gamepads[i].buttons[j] );
+			};
+		}
+		
+		for( var j = 0; j < gamepads[i].axes.length; j++ ){
+			console.log( "button" + j, gamepads[i].axes[j] );
+		}	
+	} */
+	
 	
 };
 
@@ -625,6 +743,25 @@ var render = function () {
 			
 	ctx.closePath();
 	ctx.stroke(); // Draw it 
+	
+	
+	var xDiff = canvas.width/2 - mousemove.x;
+	var yDiff = canvas.height/2 - mousemove.y;
+	
+	var mouseAngle = Math.atan( yDiff / xDiff ) * 180 / Math.PI;
+	
+	//console.log(mouseAngle); //works but needs fixing!
+	
+	/* ctx.beginPath();	
+	ctx.arc( canvas.width/2, canvas.height/2 , 10, 0, Math.PI*2, true); 
+	ctx.closePath();
+	ctx.fill();
+	
+	
+	ctx.beginPath();	
+	ctx.arc( mousemove.x -5, mousemove.y -5, 10, 0, Math.PI*2, true); 
+	ctx.closePath();
+	ctx.fill(); */
 	
 			
 };
@@ -685,12 +822,19 @@ var pistolWorldProps = {
 	frameX:0,
 };
 
+
+var shotgunWorldProps = {
+	image:"images/shotgunWorld.png",
+	width:64,
+	height:20,
+};
+
 //create background
 var bgImage = new map( "images/background.png" );
 
 //create Player Object
 var hero = new player( heroProps );
-var hero2 = new player( hero2Props );
+//var hero2 = new player( hero2Props );
 
 
 //create weapon objects.
@@ -698,17 +842,17 @@ var pistol1handed = new tool(pistol1handedProps);
 var pistol2handed = new tool(pistol2handedProps);
 var shotgun = new tool(shotGunProps);
 
-
+var worldShotgun = new worldProp( shotgunWorldProps );
 var worldPistol = new worldProp( pistolWorldProps );
 
-var following = [hero, hero2];
+var following = [hero];
 
 var camera = new camera(following);
 
 var gameMasterProps = {
-	debugging:false,
+	debugging:true,
 	camera:camera,
-	children:[ bgImage, worldPistol, hero, hero2 ],
+	children:[ bgImage, worldPistol, worldShotgun, hero ],
 };
 
 var Game = new gameMaster( gameMasterProps );

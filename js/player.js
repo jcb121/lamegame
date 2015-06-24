@@ -4,6 +4,8 @@ function player(properties){
 		this[attrname] = properties[attrname]; 
 	}	
 	
+	this.startRand();
+		
 	this.hitboxCords = [];
 	
 	//SET FORGET ==================================================
@@ -18,40 +20,14 @@ function player(properties){
 	
 	//check if animation has changed
 	this.frameChange = false;
-
-	//player location in the world
-	this.x = 0;
-	this.y = 0;
-	//player location in the world
-	this.centerX;
-	this.centerY;
 			
 	this.ready = false;
 	this.ready2 = false;
 	
-	this.start = function(){
-		if(this.ready){
-			
-			this.x = canvas.width/2 - this.width/2;
-			this.y = canvas.height/2 - this.height/2;	
-								
-			return true;
-		}else{
-			return false;
-		}
-	}
-	
-	this.startRand = function(){
-		if(this.ready){
-			this.x = 32 + (Math.random() * (canvas.width - 64));
-			this.y = 32 + (Math.random() * (canvas.height - 64));		
-		}	
-	}
 	
 	var obj = {
 		player:this,
 	};
-	
 	this.image.onload = function(){	
 		obj.image = this;
 		(function(that){
@@ -68,14 +44,11 @@ function player(properties){
 	};
 	
 	//IMPORTANT==================================================
-
-	
-	
 	
 	this.currentTool;
 	
 	//directions of each layer
-	this.direction = {
+	this.bearing = {
 		"0":0,
 		"1":0,
 		"2":0,
@@ -87,25 +60,23 @@ function player(properties){
 		"2":"standing",
 	}
 	//the current timer of the frame
-	var layerFrameTime = {
+	this.layerFrameTime = {
 		"0":0,
 		"1":0,
 		"2":0,
 	};
 	//the current frame of animation
-	var layerCurrentFrame = {
+	this.layerCurrentFrame = {
 		"0":0,
 		"1":0,
 		"2":0,
 	};
 	//how long each frame lasts
-	var layerEachFrameTime = {
+	this.layerEachFrameTime = {
 		"0":0,
 		"1":0,
 		"2":0,
 	};
-	
-	
 	//holds the xy cords on the sprite sheet
 	this.currentFrames = {
 		layer0:{
@@ -121,71 +92,12 @@ function player(properties){
 			y:0
 		},
 	}
-	
-	this.collide = function( obj ){
-		if( obj.__proto__.constructor.name == "player" ){ //works
-			//hits another player.. ai?
-		}
-		if( obj.__proto__.constructor.name == "bullet" ){ //works
-			
-			console.log("set false");
-			obj.live = false;
-			
-		}
-		
-	};
-	
-	this.chooseFrame = function(time){
-		
-		//syncronize two later animations!
-		if( this.state[0] == this.state[1]){
-			layerFrameTime[1] =  layerFrameTime[0];
-			layerCurrentFrame[1] = layerCurrentFrame[0];
-		}
-		
-		//var animation = this.animations[state];
-		
-		time *=1000;
-		for (i = 0; i < 2; i++) { 
-			
-			
-			var animation = this.animations[ this.state[i] ];
-		
-			layerEachFrameTime[i] = animation["layerTime" + i];
-			if (layerFrameTime[i] > layerEachFrameTime[i] || this.frameChange == true){
-				//get next frame
-				
-				layerFrameTime[i] = 0; 
-				
-				
-				if(layerCurrentFrame[i] > animation["layer"+i].length -2){
-					
-					layerCurrentFrame[i] = 0;				
-					this.currentFrames["layer" + i].x = animation["layer" + i][ layerCurrentFrame[i] ][1]
-					this.currentFrames["layer" + i].y = animation["layer" + i][ layerCurrentFrame[i] ][0]
-					
-				}else{	
-				
-					layerCurrentFrame[i]++;				
-					
-					this.currentFrames["layer" + i].x = animation["layer" + i][ layerCurrentFrame[i] ][1]
-					this.currentFrames["layer" + i].y = animation["layer" + i][ layerCurrentFrame[i] ][0]
-						
-				}
-			}else{
-					layerFrameTime[i] += time;
-			}
-			
+};
 
-		};		
-	};
-	
-	this.update = function(modifier){
-		
+player.prototype = {
+	update:function(modifier){
 		var time = modifier;
-		this.centerX =  this.x + this.width/2;
-		this.centerY = this.y + this.height/2;
-
+		
 		var hands = 0;
 		
 		if ( this.currentTool !== undefined) { 
@@ -202,8 +114,7 @@ function player(properties){
 				
 			var travel = this.speed * modifier;
 			this.x -= travel;
-			this.centerX =  this.x + this.width/2;
-						
+				
 			angle += 270;
 			moving++;	
 		}
@@ -211,8 +122,7 @@ function player(properties){
 						
 			var travel = this.speed * modifier;
 			this.y += travel;
-			this.centerY = this.y + this.height/2;	
-			
+		
 			angle += 180; //pointing down!			
 			moving++;
 		}
@@ -221,8 +131,7 @@ function player(properties){
 				
 			var travel = this.speed * modifier;
 			this.x += travel;
-			this.centerX = this.x + this.width/2;	
-			
+	
 			angle += 90; //pointing down!	
 			moving++;
 		}
@@ -230,8 +139,7 @@ function player(properties){
 				
 			var travel = this.speed * modifier;
 			this.y -= travel;
-			this.centerY = this.y + this.height/2;
-			
+
 			angle -= 360; //keep pointing up!	
 			moving++;
 		}		
@@ -250,8 +158,21 @@ function player(properties){
 		if( this.controls.slot3 in keysDown){	//num2
 			console.log("pulls out a shotgun");
 			this.currentTool = shotgun;
-		}		
+		}
+
+		
 		if (this.controls.shoot in keysDown) { // space /	shoot!	
+			
+			if ( this.currentTool !== undefined) { 
+				this.currentTool.fire(time);
+			}
+			
+		}	
+		
+		
+		
+		
+		if ( mousedown != false) { // space /	shoot!	
 			
 			if ( this.currentTool !== undefined) { 
 				this.currentTool.fire(time);
@@ -282,8 +203,8 @@ function player(properties){
 				} 
 			}
 			
-			this.direction["0"] = angle;
-			this.direction["1"] = angle;
+			this.bearing["0"] = angle;
+			this.bearing["1"] = angle;
 			
 			this.state["0"] = "walking";
 			this.state["1"] = "walking";
@@ -294,85 +215,137 @@ function player(properties){
 			this.state["1"] = "standing";
 		}	
 		
+		
 		//weapon always overwrites standing....
 		if( this.currentTool !== undefined ){		
 			this.state["1"] = this.currentTool.animation;
 		}
 				
-		//hit boxes are on layer 1!
-		//
-		
+		//hit boxes are on layer 1!		
 		
 		//------------------------------------------------------------
 		
 		var hitBoxes = this.animations[ this.state[1] ].hitBoxes;
-
-		this.hitboxCords = [ //array of all cords
-			//box
-			[ 
-				rotate( this.centerX + hitBoxes[0][0].x , this.centerY + hitBoxes[0][0].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[0][0].x , this.centerY + hitBoxes[0][1].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[0][1].x , this.centerY + hitBoxes[0][1].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[0][1].x , this.centerY + hitBoxes[0][0].y , this.centerX , this.centerY , this.direction["1"] ),
-			],
-			//box
-			[ 
-				rotate( this.centerX + hitBoxes[1][0].x , this.centerY + hitBoxes[1][0].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[1][0].x , this.centerY + hitBoxes[1][1].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[1][1].x , this.centerY + hitBoxes[1][1].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[1][1].x , this.centerY + hitBoxes[1][0].y , this.centerX , this.centerY , this.direction["1"] ),
-			],
-			//box
-			[ 
-				rotate( this.centerX + hitBoxes[2][0].x , this.centerY + hitBoxes[2][0].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[2][0].x , this.centerY + hitBoxes[2][1].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[2][1].x , this.centerY + hitBoxes[2][1].y , this.centerX , this.centerY , this.direction["1"] ),
-				rotate( this.centerX + hitBoxes[2][1].x , this.centerY + hitBoxes[2][0].y , this.centerX , this.centerY , this.direction["1"] ),
-			],
-		]; 
+				
+		this.hitboxCords = [ //array of all cords Cord being one square.....
+			{
+				x:this.x + hitBoxes[0].x,
+				y:this.y + hitBoxes[0].y,
+				width: hitBoxes[0].width,
+				height: hitBoxes[0].height, 
+				bearing: this.bearing["1"],
+				
+			},
+			{
+				x:this.x + hitBoxes[1].x,
+				y:this.y + hitBoxes[1].y,
+				width: hitBoxes[1].width,
+				height: hitBoxes[1].height, 
+				bearing: this.bearing["1"],
+				
+			},
+			{
+				x:this.x + hitBoxes[2].x,
+				y:this.y + hitBoxes[2].y,
+				width: hitBoxes[2].width,
+				height: hitBoxes[2].height, 
+				bearing: this.bearing["1"],
+				
+			},
+		];
 		
+			
 		this.chooseFrame( time );
+	},
+	chooseFrame:function(time){
+		//syncronize two later animations!
+		if( this.state[0] == this.state[1]){
+			this.layerFrameTime[1] =  this.layerFrameTime[0];
+			this.layerCurrentFrame[1] = this.layerCurrentFrame[0];
+		}
+		
+		//var animation = this.animations[state];
+		
+		time *=1000;
+		for (i = 0; i < 2; i++) { 
+			
+			
+			var animation = this.animations[ this.state[i] ];
+		
+			this.layerEachFrameTime[i] = animation["layerTime" + i];
+			if (this.layerFrameTime[i] > this.layerEachFrameTime[i] || this.frameChange == true){
+				//get next frame
+				
+				this.layerFrameTime[i] = 0; 
+				
+				
+				if(this.layerCurrentFrame[i] > animation["layer"+i].length -2){
+					
+					this.layerCurrentFrame[i] = 0;				
+					this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
+					this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
+					
+				}else{	
+				
+					this.layerCurrentFrame[i]++;				
+					
+					this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
+					this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
+						
+				}
+			}else{
+					this.layerFrameTime[i] += time;
+			}
+			
 
-	};
-	
-	this.gotoPlayer = function(){
-		ctx.save();
-		ctx.translate(this.centerX, this.centerY);
-	}
-	
-	this.draw = function(){	
+		};	
+	},
+	draw:function(){
 		if (this.ready && this.ready2) {
 
-				this.gotoPlayer();
-								
-				//save the layer at the player.
-				ctx.save();	
-			
-				//layer 0
-				
+			this.gotoPlayer();
+							
+			//save the layer at the player.
+			ctx.save();	
 		
-				
-				ctx.rotate( this.direction["0"] * Math.PI/180);
-				ctx.drawImage( this.image2,	this.frameX * (this.currentFrames.layer0.y - 1),this.frameY * (this.currentFrames.layer0.x - 1), this.frameX, this.frameY, -this.width/2, -this.height/2, this.width, this.height);
-	
-				ctx.restore();
-							
-				//  LAYER 1
-				ctx.rotate( this.direction["1"] * Math.PI/180);
-				ctx.drawImage(this.image, this.frameX * (this.currentFrames.layer1.y - 1), this.frameY * (this.currentFrames.layer1.x - 1), this.frameX,this.frameY, -this.width/2, -this.height/2 ,this.width,this.height);
-							
-				// tool acs as another layer
-				if ( this.currentTool !== undefined) { 
-					this.currentTool.draw();
-				}
-				
-				//back to original canvas layer			
-				ctx.restore();		
-		}
-	}
-	
-	this.drawCords = function(){
-		ctx.fillText( "player.x:" + this.x + " player.y:" + this.y,50,50);	
-	}
+			//layer 0
+									
+			
+			ctx.rotate( this.bearing["0"] * Math.PI/180);
+			ctx.drawImage( this.image2,	this.frameX * (this.currentFrames.layer0.y - 1),this.frameY * (this.currentFrames.layer0.x - 1), this.frameX, this.frameY, -this.width/2, -this.height/2, this.width, this.height);
 
-};
+			ctx.restore();
+						
+			//  LAYER 1
+			ctx.rotate( this.bearing["1"] * Math.PI/180);
+			ctx.drawImage(this.image, this.frameX * (this.currentFrames.layer1.y - 1), this.frameY * (this.currentFrames.layer1.x - 1), this.frameX,this.frameY, -this.width/2, -this.height/2 ,this.width,this.height);
+						
+			// tool acs as another layer
+			if ( this.currentTool !== undefined) { 
+				this.currentTool.draw();
+			}
+			
+			//back to original canvas layer			
+			ctx.restore();		
+		}
+	},
+	collide:function( obj ){
+		if( obj.__proto__.constructor.name == "player" ){ //works
+			//hits another player.. ai?
+		}
+		if( obj.__proto__.constructor.name == "bullet" ){ //works
+			
+			console.log("set false");
+			obj.live = false;
+			
+		}
+	},
+	gotoPlayer:function(){
+		ctx.save();
+		ctx.translate(this.x, this.y);
+	},
+	drawCords:function(){
+		ctx.fillText( "player.x:" + this.x + " player.y:" + this.y,50,50);	
+	},
+	startRand,
+}
