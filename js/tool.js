@@ -162,13 +162,15 @@ bullet.prototype = {
 			this.move( travel, this.bearing );
 		};
 				
-		this.hitboxCords = [ //array of all cords Cord being one square.....			 
+		this.hitboxCords = [  
 			{
-				x:this.x - this.bulletSize/2,
-				y:this.y - this.bulletSize/2,
+				x:this.x ,
+				y:this.y,
 				width: this.bulletSize,
 				height: this.bulletSize,
 				bearing: 0,
+				xOffset: - this.bulletSize/2,
+				yOffset: - this.bulletSize/2,
 				
 			},
 		]; 	

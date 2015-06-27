@@ -17,9 +17,9 @@ var shotGunProps = {
 	accuracy:3, //in degrees.
 	
 	bulletsPerFire:6, //spread in degrees.
-	bulletSpread:15,
+	bulletSpread:10,
 	bulletSpeed:1024,
-	bulletSize:2,
+	bulletSize:4,
 };
 
 

@@ -8,8 +8,15 @@ function player(properties){
 		
 	this.hitboxCords = [];
 	
-	//SET FORGET ==================================================
+	this.currentTool = 0; //index
+	//this.inventory = [ undefined ]; //array
 	
+	
+	if( this.inventory == undefined ){
+		this.inventory = [undefined];
+	}else{
+		this.inventory.unshift(undefined);
+	}	
 
 	//sprite sheets.
 	this.image = new Image();
@@ -19,7 +26,7 @@ function player(properties){
 	this.image2.src = properties.spriteLegsSrc;
 	
 	//check if animation has changed
-	this.frameChange = false;
+	this.frameChange = false; //probably use this?
 			
 	this.ready = false;
 	this.ready2 = false;
@@ -43,9 +50,11 @@ function player(properties){
 		})(obj);
 	};
 	
-	//IMPORTANT==================================================
+
 	
-	this.currentTool;
+	
+	
+	
 	
 	//directions of each layer
 	this.bearing = {
@@ -96,15 +105,20 @@ function player(properties){
 
 player.prototype = {
 	update:function(modifier){
-		var time = modifier;
 		
+		this.currentTool = 1;
+		
+		var time = modifier;
+		var currentTool = this.inventory[ this.currentTool ];
 		var hands = 0;
 		
-		if ( this.currentTool !== undefined) { 
+		if ( currentTool !== undefined) { 
 			
-			this.currentTool.update(time);
-			modifier = modifier / this.currentTool.weight;
-			hands = this.currentTool.hands;
+			//console.log("blip");
+			
+			currentTool.update(time);
+			modifier = modifier / currentTool.weight;
+			hands = currentTool.hands;
 		}
 				
 		var moving = 0;
@@ -142,44 +156,33 @@ player.prototype = {
 
 			angle -= 360; //keep pointing up!	
 			moving++;
-		}		
-		if( this.controls.slot0 in keysDown){	//num1
-			console.log("puts guns away pistol");
+		}	
+		
+		/* if( this.controls.slot0 in keysDown){	//num1
+			//console.log("puts guns away pistol");
 			this.currentTool = undefined;
 		}
 		if( this.controls.slot1 in keysDown){	//num1
-			console.log("pulls out a 1 handed pistol");
+			//console.log("pulls out a 1 handed pistol");
 			this.currentTool = pistol1handed;	
 		}
 		if( this.controls.slot2 in keysDown){	//num2
-			console.log("pulls out a 2 handed pistol");
+			//console.log("pulls out a 2 handed pistol");
 			this.currentTool = pistol2handed;
 		}
 		if( this.controls.slot3 in keysDown){	//num2
-			console.log("pulls out a shotgun");
+			//console.log("pulls out a shotgun");
 			this.currentTool = shotgun;
-		}
+		} */
 
 		
 		if (this.controls.shoot in keysDown) { // space /	shoot!	
 			
-			if ( this.currentTool !== undefined) { 
-				this.currentTool.fire(time);
+			if ( currentTool !== undefined) { 
+				currentTool.fire(time);
 			}
 			
-		}	
-		
-		
-		
-		
-		if ( mousedown != false) { // space /	shoot!	
-			
-			if ( this.currentTool !== undefined) { 
-				this.currentTool.fire(time);
-			}
-			
-		}
-		
+		}		
 		
 		// vars above are currentTool, angle and moving.....
 		
@@ -215,10 +218,10 @@ player.prototype = {
 			this.state["1"] = "standing";
 		}	
 		
-		
 		//weapon always overwrites standing....
-		if( this.currentTool !== undefined ){		
-			this.state["1"] = this.currentTool.animation;
+		if( currentTool !== undefined ){	
+			//console.log(currentTool);
+			this.state["1"] = currentTool.animation;
 		}
 				
 		//hit boxes are on layer 1!		
@@ -226,29 +229,38 @@ player.prototype = {
 		//------------------------------------------------------------
 		
 		var hitBoxes = this.animations[ this.state[1] ].hitBoxes;
-				
+		
+		//WORK OUT SCALE.....
+		
+		
 		this.hitboxCords = [ //array of all cords Cord being one square.....
 			{
-				x:this.x + hitBoxes[0].x,
-				y:this.y + hitBoxes[0].y,
-				width: hitBoxes[0].width,
-				height: hitBoxes[0].height, 
+				x:this.x,
+				y:this.y,
+				xOffset: hitBoxes[0].x * this.scale,
+				yOffset: hitBoxes[0].y * this.scale,
+				width: hitBoxes[0].width * this.scale,
+				height: hitBoxes[0].height * this.scale,  
 				bearing: this.bearing["1"],
 				
 			},
 			{
-				x:this.x + hitBoxes[1].x,
-				y:this.y + hitBoxes[1].y,
-				width: hitBoxes[1].width,
-				height: hitBoxes[1].height, 
+				x:this.x,
+				y:this.y,
+				xOffset: hitBoxes[1].x * this.scale,
+				yOffset: hitBoxes[1].y * this.scale,
+				width: hitBoxes[1].width * this.scale,
+				height: hitBoxes[1].height * this.scale, 
 				bearing: this.bearing["1"],
 				
 			},
 			{
-				x:this.x + hitBoxes[2].x,
-				y:this.y + hitBoxes[2].y,
-				width: hitBoxes[2].width,
-				height: hitBoxes[2].height, 
+				x:this.x,
+				y:this.y,
+				xOffset: hitBoxes[2].x * this.scale,
+				yOffset: hitBoxes[2].y * this.scale,
+				width: hitBoxes[2].width * this.scale,
+				height: hitBoxes[2].height * this.scale, 
 				bearing: this.bearing["1"],
 				
 			},
@@ -309,20 +321,38 @@ player.prototype = {
 			ctx.save();	
 		
 			//layer 0
-									
+		
 			
 			ctx.rotate( this.bearing["0"] * Math.PI/180);
-			ctx.drawImage( this.image2,	this.frameX * (this.currentFrames.layer0.y - 1),this.frameY * (this.currentFrames.layer0.x - 1), this.frameX, this.frameY, -this.width/2, -this.height/2, this.width, this.height);
+			ctx.drawImage( this.image2,
+				this.frameX * (this.currentFrames.layer0.y - 1),
+				this.frameY * (this.currentFrames.layer0.x - 1), 
+				this.frameX, 
+				this.frameY, 
+				-this.width/2 * this.scale, 
+				-this.height/2 * this.scale, 
+				this.width * this.scale, 
+				this.height * this.scale
+			);
 
 			ctx.restore();
 						
 			//  LAYER 1
 			ctx.rotate( this.bearing["1"] * Math.PI/180);
-			ctx.drawImage(this.image, this.frameX * (this.currentFrames.layer1.y - 1), this.frameY * (this.currentFrames.layer1.x - 1), this.frameX,this.frameY, -this.width/2, -this.height/2 ,this.width,this.height);
+			ctx.drawImage(this.image, 
+				this.frameX * (this.currentFrames.layer1.y - 1), 
+				this.frameY * (this.currentFrames.layer1.x - 1), 
+				this.frameX,
+				this.frameY, 
+				-this.width/2 * this.scale, 
+				-this.height/2 * this.scale,
+				this.width * this.scale,
+				this.height * this.scale
+			);
 						
 			// tool acs as another layer
-			if ( this.currentTool !== undefined) { 
-				this.currentTool.draw();
+			if ( this.inventory[ this.currentTool ] !== undefined) { 
+				this.inventory[ this.currentTool ].draw();
 			}
 			
 			//back to original canvas layer			
@@ -330,12 +360,13 @@ player.prototype = {
 		}
 	},
 	collide:function( obj ){
+		//BAD
 		if( obj.__proto__.constructor.name == "player" ){ //works
 			//hits another player.. ai?
 		}
 		if( obj.__proto__.constructor.name == "bullet" ){ //works
 			
-			console.log("set false");
+			//console.log("set false");
 			obj.live = false;
 			
 		}

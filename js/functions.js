@@ -82,71 +82,36 @@ var drawChildren(){
 
 //Not works......
 function touching(rect1 , rect2){
-	
-
-
-	
-	//var rect1zero = false;
-	//var rect2zero = false;
-	
-	if( rect1.bearing % 90 == 0 && rect2.bearing % 90 == 0 ){		
+			
+	rect1 = getPoints( rect1 );
+	rect2 = getPoints( rect2 );
 		
-		if (rect1.x < rect2.x + rect2.width &&
-		   rect1.x + rect1.width > rect2.x &&
-		   rect1.y < rect2.y + rect2.height &&
-		   rect1.height + rect1.y > rect2.y) {
-			// collision detected!
-			console.log( rect1, rect2 );
-		}
-	
-	};
-	
-	
-	
-	
-	
-	
-	/* if(rect1 == false || rect2 == false){		
-		return false;
-	}	
-	
-	//test if rec1 is square
-	if(
-		rect1[0].x == rect1[1].x ||
-		rect1[0].y == rect1[1].y
-	){
-		rect1zero = true;
-	}
-	if(
-		rect2[0].x == rect2[1].x ||
-		rect2[0].y == rect2[1].y 
-	){
-		rect2zero = true;
-	}
-	
-	if( rect1zero && rect2zero){
-	
-		if (   
-		//testing outsides
-		rect1[1].x < rect2[3].x	&&
-		//testing insides
-		rect1[3].x > rect2[1].x  && 
-	   
-	   //==============================
-	   
-		rect1[3].y < rect2[1].y  &&
-	   
-		rect1[1].y > rect2[3].y ) {
 		
-		return true;
+	var V = SAT.Vector;
+	var P = SAT.Polygon;
 		
-		}
-				
-	}else{
-				
-	}; */
+	var polygon1 = new P(new V(0,0), [
+			
+		new V(rect1[3].x, rect1[3].y),	
+		new V(rect1[2].x, rect1[2].y),	
+		new V(rect1[1].x, rect1[1].y),		
+		new V(rect1[0].x, rect1[0].y),
 
-	return false;
+	]);
+		
+		
+	var polygon2 = new P(new V(0,0), [
+			
+		new V(rect2[3].x, rect2[3].y),	
+		new V(rect2[2].x, rect2[2].y),
+		new V(rect2[1].x, rect2[1].y),
+		new V(rect2[0].x, rect2[0].y),
+		
+	]);
+		
+	var response = new SAT.Response();
+	return collided = SAT.testPolygonPolygon(polygon1, polygon2, response);
+	
 }
 
 function rotate(x, y, xm, ym, a) {
@@ -171,3 +136,86 @@ function rotate(x, y, xm, ym, a) {
 	};
 	
 }
+
+function getPoints( rect ){
+	
+	////console.log( rect);
+	
+	var points = []
+	
+	var xOffset = 0;
+	var yOffset = 0;
+	
+	
+	//-------------------------------------------------------
+	
+	var sin = Math.sin(  ( 90 - rect.bearing) * Math.PI / 180 ); //both pos is ok.
+	var cos = Math.cos(  ( 90 - rect.bearing) * Math.PI / 180 ); //both pos is ok
+		
+	xOffset += sin * rect.xOffset;
+	yOffset += cos * rect.xOffset;  	
+	
+	sin =  	Math.sin( (rect.bearing + 180) * Math.PI / 180 );
+	cos = 	Math.cos( (rect.bearing) * Math.PI / 180 );
+	
+	xOffset += sin * rect.yOffset; //	-7
+	yOffset += cos * rect.yOffset; // 	 7
+	
+	//works....CORRECT
+	//console.log( "TOP", xOffset + rect.x , yOffset + rect.y );
+		
+	points.push({
+		x: rect.x + xOffset,
+		y: rect.y + yOffset
+	});
+	
+	//000000000000000000000000000000000000000000000000000000000000000000000
+	sin = Math.sin( (90 - rect.bearing) * Math.PI / 180 );
+	cos =  Math.cos( (90 - rect.bearing) * Math.PI / 180 );
+	
+	var xNext0 = sin * rect.width;
+	var yNext0 =  cos * rect.width;
+	
+	//works...Correct		
+	//console.log( "RIGHT", rect.x + xOffset +  xNext0 , rect.y + yOffset +  yNext0 );
+	
+	points.push({
+			x: rect.x + xOffset + xNext0,
+			y: rect.y + yOffset + yNext0,
+	});
+	
+	//000000000000000000000000000000000000000000000000000000000000000000000
+	
+	sin = 	Math.sin( (   rect.bearing + 180) * Math.PI / 180 );
+	cos =  Math.cos( ( rect.bearing) * Math.PI / 180 );
+	
+	var xNext1 = sin * rect.height; //45
+	var yNext1 =  cos * rect.height; //45 
+	
+	//console.log( "BOTTOM", rect.x + xOffset +  xNext0 + xNext1 , rect.y + yOffset +  yNext0 + yNext1 );
+		
+	points.push({
+			x: rect.x + xOffset+ xNext0 +  xNext1,
+			y: rect.y + yOffset + yNext0 + yNext1,
+	});
+	
+	//000000000000000000000000000000000000000000000000000000000000000000000
+
+	
+	sin = 	Math.sin( ( 90-  rect.bearing +180) * Math.PI / 180 );
+	cos =  Math.cos( (90 - rect.bearing +180 ) * Math.PI / 180 );
+	
+	var xNext2 = sin *  rect.width;
+	var yNext2 = cos * rect.width;
+			
+	//console.log( "NEXT", rect.x + xOffset +  xNext0 + xNext1 + xNext2 , rect.y + yOffset +  yNext0 + yNext1 + yNext2 );
+
+	points.push({
+			x: rect.x + xOffset +  xNext0 + xNext1 + xNext2,
+			y: rect.y + yOffset +  yNext0 + yNext1 + yNext2,
+	});
+	
+
+	
+	return points
+};

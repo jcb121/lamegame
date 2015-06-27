@@ -13,9 +13,9 @@ var heroAnimations ={
 		layer1:[ [1,1],[2,2] ],
 			
 		hitBoxes:[
-			{ x:-15, y:-5, width:10, height:10 },
-			{ x:-5, y:-15, width:10, height:25 },
-			{ x:5, y:-5, width:10, height:10 }
+			{ x:-15, y:-3, width:10, height:10 },
+			{ x:-5, y:-10, width:10, height:20 },
+			{ x:5, y:-3, width:10, height:10 }
 		],
 	},
 	
@@ -32,9 +32,9 @@ var heroAnimations ={
 		layer1:[ [2,1],[1,2],[1,3],[2,3] ],
 		
 		hitBoxes:[
-			{ x:-15, y:-5, width:10, height:10 },
-			{ x:-5, y:-15, width:10, height:25 },
-			{ x:5, y:-5, width:10, height:10 }
+			{ x:-15, y:0, width:10, height:10 },
+			{ x:-5, y:-10, width:10, height:25 },
+			{ x:5, y:0, width:10, height:10 }
 		],
 		
 	},
@@ -44,7 +44,7 @@ var heroAnimations ={
 		hitBoxes:[
 			{ x:-15, y:-5, width:10, height:10 },
 			{ x:-5, y:-15, width:10, height:25 },
-			{ x:5, y:-5, width:10, height:10 }
+			{ x:5, y:-5, width:5, height:10 }
 		],
 		
 		layerTime1:500,
@@ -58,7 +58,7 @@ var heroAnimations ={
 		hitBoxes:[
 			{ x:-15, y:-5, width:10, height:10 },
 			{ x:-5, y:-15, width:10, height:25 },
-			{ x:5, y:-5, width:10, height:15 }
+			{ x:5, y:-5, width:5, height:15 }
 		],
 		
 		layerTime1:500,
