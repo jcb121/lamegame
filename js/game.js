@@ -710,7 +710,7 @@ var main = function () {
 		name:"hero2",
 		ai:false,
 		style:"topDown",
-		spriteTorseSrc:"images/bkspr01.png",
+		spriteTorseSrc:"images/torsoRed.png",
 		spriteLegsSrc:"images/bkspr01-legs.png",
 		frameX:128,
 		frameY:128,
@@ -723,7 +723,12 @@ var main = function () {
 		controls:hero2Controls,
 		collisions:{
 			bullet:function( bullet ){
-				bullet.live = false;
+				bullet.live = false; //bullet absorbed
+			},
+			worldProp:function( prop ){			
+				if( prop.collectable){
+					prop.live = false; //prop collected
+				};
 			},
 		},
 		
