@@ -1,5 +1,7 @@
 function player(properties){
 	
+	this.collisions = {};
+	
 	for (var attrname in properties) { 
 		this[attrname] = properties[attrname]; 
 	}	
@@ -11,6 +13,7 @@ function player(properties){
 	this.currentTool = 0; //index
 	//this.inventory = [ undefined ]; //array
 	
+	this.type = "player";
 	
 	if( this.inventory == undefined ){
 		this.inventory = [undefined];
@@ -49,12 +52,6 @@ function player(properties){
 			that.player.ready2 = true;	
 		})(obj);
 	};
-	
-
-	
-	
-	
-	
 	
 	//directions of each layer
 	this.bearing = {
@@ -112,10 +109,7 @@ player.prototype = {
 		var currentTool = this.inventory[ this.currentTool ];
 		var hands = 0;
 		
-		if ( currentTool !== undefined) { 
-			
-			//console.log("blip");
-			
+		if ( currentTool !== undefined) { 			
 			currentTool.update(time);
 			modifier = modifier / currentTool.weight;
 			hands = currentTool.hands;
@@ -220,7 +214,6 @@ player.prototype = {
 		
 		//weapon always overwrites standing....
 		if( currentTool !== undefined ){	
-			//console.log(currentTool);
 			this.state["1"] = currentTool.animation;
 		}
 				
@@ -359,18 +352,7 @@ player.prototype = {
 			ctx.restore();		
 		}
 	},
-	collide:function( obj ){
-		//BAD
-		if( obj.__proto__.constructor.name == "player" ){ //works
-			//hits another player.. ai?
-		}
-		if( obj.__proto__.constructor.name == "bullet" ){ //works
-			
-			//console.log("set false");
-			obj.live = false;
-			
-		}
-	},
+	collide,
 	gotoPlayer:function(){
 		ctx.save();
 		ctx.translate(this.x, this.y);
@@ -379,4 +361,11 @@ player.prototype = {
 		ctx.fillText( "player.x:" + this.x + " player.y:" + this.y,50,50);	
 	},
 	startRand,
+	incSize,
+	decSize,
+	incSpeed,
+	decSpeed,
+	incToughness,
+	decToughness,
+	damage,
 }

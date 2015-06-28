@@ -1,8 +1,12 @@
 function worldProp( props ){
+
+	this.collisions;
 	
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
 	}	
+	
+	this.type = "worldProp";
 	
 	this.startRand();
 		
@@ -38,24 +42,20 @@ worldProp.prototype = {
 			ctx.drawImage(this.image, 0 -this.width/2, 0 - this.height/2 , this.width, this.height);
 		ctx.restore();
 	},
-	collide:function( obj ){
-		if( obj.__proto__.constructor.name == "player" ){ //works
-			//console.log("contact");
-		}
-		if( obj.__proto__.constructor.name == "bullet" ){ //works
-			
-		}
-	},
+	collide,
 	startRand,
 		
 };
 
 function worldArea( props ){
 	
+	this.collisions;
+	
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
 	}	
 	
+	this.type = "worldArea";
 	this.hitboxCords = [];
 };
 
@@ -79,12 +79,19 @@ worldArea.prototype = {
 			ctx.translate( this.x, this.y );
 			ctx.rotate( this.bearing * (Math.PI/180) );
 			
+			ctx.beginPath();
 			ctx.rect(  -this.width/2,  - this.height/2 , this.width, this.height  );
+			ctx.closePath();
+			
 			ctx.stroke();
 
 		ctx.restore();
 	},
-	collide:function(){
+	collide:function( obj){
+		
+		if( this.collisions[ obj.type ] != undefined){
+			this.collisions[ obj.type ]( obj);
+		};
 		
 	},
 };

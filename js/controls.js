@@ -1,16 +1,12 @@
-
-/* var gamepadSupportAvailable = !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
-//console.log(gamepadSupportAvailable); */
-
 var heroControls = {
 	
 	left:37,
 	up:38,
 	right:39,
 	down:40,
-	shoot:32,
-	next:33,
-	prev:34,
+	shoot:17, //right control
+	next:33,  //page up
+	prev:34,  //page down
 
 }
 

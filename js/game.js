@@ -1,42 +1,13 @@
-// Create the canvas
-var vCanvas = document.createElement("canvas");
-var vCtx = vCanvas.getContext("2d");
-vCanvas.width = 1000;
-vCanvas.height = 700;
-
-var canvas = document.createElement("canvas");
-var ctx = canvas.getContext("2d");
-canvas.width = 1000;
-canvas.height = 700;
-
-document.getElementById("lameGame").appendChild(canvas);
-
-
-/* var hasGP = false;
- 
-function canGame() {
-   return "getGamepads" in navigator;
-} */
- 
 function worldMaster ( props ){
-	
-	this.update = function(time){
-		
-	}
-	this.draw = function(){
-		
-		
-	}
-	
+	this.update = function(time){}
+	this.draw = function(){}
 }
 
 function gameMaster( props ){
 	
 	this.children = [];
 	
-	for (var attrname in props) { 
-		this[attrname] = props[attrname]; 
-	}
+	for (var attrname in props) { this[attrname] = props[attrname]; };
 		
 	this.addObject = function(object){		
 		this.children.push(object);
@@ -52,7 +23,7 @@ function gameMaster( props ){
 		//update the children....
 		for(var i = 0; i < this.children.length; i++) {	
 			
-			if( this.children[i].live == false){
+			if( this.children[i].live == false){				
 				this.children.splice(i,1);
 				continue;
 			}; 
@@ -60,9 +31,7 @@ function gameMaster( props ){
 			this.children[i].update(modifier);	
 		};
 		
-		//Works out collisions to some extent......
-		
-		
+		//Works out collisions
 		//for the amount of objects in gameMaster.....
 		for (var j = 0; j < this.children.length; j++) {		
 			
@@ -87,65 +56,45 @@ function gameMaster( props ){
 					//how many hitboxes the target has
 					for( var u = 0; u < targetCords.length; u++ ){
 												
-						if( touching( objectCords[y], targetCords[u] ) ){
-							
-							console.log("touching");
-							collisions.push( [ this.children[q] , this.children[j] ] );	
-						}
+						if( touching( objectCords[y], targetCords[u] ) )	collisions.push( [ this.children[q] , this.children[j] ] );	
+						
 					}
 				}
 			};	
 		};
-		
 		//run the collisions
 		for (var i = 0; i < collisions.length; i++) {		
 			collisions[i][0].collide( collisions[i][1] );
 			collisions[i][1].collide( collisions[i][0] );
 		};
-		
 	};
 	
 	this.draw = function(){		
-		
 		
 		if( this.camera.split ){
 						
 			for(var i = 0; i < this.camera.x.length; i++){
 				
-				//canvas 0,0
-				
-				
 				this.camera.draw(i); //gives the camera who to draw for
 				
-				//map 0,0,
-					
-				//draws the children of the game....
-				for (var j = 0; j < this.children.length; j++) {
-					
-					this.children[j].draw();
-					
+				for (var j = 0; j < this.children.length; j++) {				
+					this.children[j].draw();	
 				}; 
 				
 				this.camera.end(i);
-				//canvas 0,0
 			}
 			
 		}else{ //draws avg cam!
 			
 			this.camera.draw(); //gives the camera who to draw for... MAY NOT BE NEEDED?
 			
-			//draws the children of the game....
 			for (var i = 0; i < this.children.length; i++) {	
 				this.children[i].draw();	
 			}; 
-				
 		};
 
-		//how many things the camera is following...
-		
-		
 	
-		if( this.debugging ){			
+		if( this.debugging ){			//doesn't work if split.
 			
 			ctx.beginPath();
 			ctx.arc(0, 0, 2, 0, Math.PI*2, true); 
@@ -160,8 +109,7 @@ function gameMaster( props ){
 				
 				//get the current boxes
 				var boxes = this.children[i].hitboxCords;
-				
-							
+					
 				//for every box
 				for( var k = 0; k < boxes.length; k++){
 					
@@ -169,24 +117,15 @@ function gameMaster( props ){
 					
 					//get the current box
 					var box = boxes[k];
-					
-	
-					
 						ctx.translate(box.x, box.y);	
-							
 						ctx.rotate( box.bearing * (Math.PI/180)  );
-	
 						ctx.rect(  box.xOffset,  box.yOffset, box.width, box.height);
-						
 						ctx.stroke();
-						
 						ctx.restore();				
 				}
 			}	
 		}	
 	};
-	
-	//////console.log(this);
 };
 
 function camera(following){
@@ -479,7 +418,6 @@ function camera(following){
 					this.y[1] = this.following[1].y + boundryY;
 				}
 				else{
-					////console.log( this.playerAngle);
 					debugger;
 				}
 				
@@ -548,6 +486,7 @@ function camera(following){
 			
 		}
 	}	
+	
 	this.drawCords = function(){
 		ctx.fillText( "camera.x:" + this.x + " camera.y:" + this.y,50,100);	
 				
@@ -576,7 +515,6 @@ function map(imageLoc){
 	
 	this.draw = function(x,y){	
 		if (this.ready) {
-			
 			if(arguments.length == 0){
 				ctx.drawImage(this.image, this.x, this.y);
 			}else{
@@ -593,49 +531,30 @@ var keysDown = {};
 addEventListener("keydown", function (e) {
 	keysDown[e.keyCode] = true;
 }, false);
-
 addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
-
 addEventListener("gamepadconnected", function(e) { 
 	gamepadHandler(e, true); 
 }, false);
-
 addEventListener("gamepaddisconnected", function(e) { 
 	gamepadHandler(e, false); 
 }, false); 
-
 
 var mousedown = false;
 var mousemove = false;
 
 addEventListener("mousedown", function(e) { 
-	
-	//////console.log(e);
-	
 	mousedown = e;
-	
 }, false); 
-
 addEventListener("mouseup", function(e) { 
 	
 	mousedown = false;
 	
 }, false); 
-
-addEventListener("mousemove", function(e) { 
-	
-	//////console.log(e);
-	
+addEventListener("mousemove", function(e) { 	
 	mousemove = e;
-	
 }, false); 
-
-
-
-
-
 
 var gameReady = false;
 
@@ -738,32 +657,6 @@ var render = function () {
 
 };
 
-function calculateEllipse(x, y, a, b, angle, steps) {
-  if (steps == null)
-    steps = 36;
-  var points = [];
- 
-  // Angle is given by Degree Value
-  var beta = -angle * (Math.PI / 180); //(Math.PI/180) converts Degree Value into Radians
-  var sinbeta = Math.sin(beta);
-  var cosbeta = Math.cos(beta);
- 
-  for (var i = 0; i < 360; i += 360 / steps) 
-  {
-    var alpha = i * (Math.PI / 180);
-    var sinalpha = Math.sin(alpha);
-    var cosalpha = Math.cos(alpha);
- 
-    var X = x + (a * cosalpha * cosbeta - b * sinalpha * sinbeta);
-    var Y = y + (a * cosalpha * sinbeta + b * sinalpha * cosbeta);
- 
-    //points.push(	new OpenLayers.Geometry.Point(X, Y)	);
-	points.push( {x:X,y:Y} );
-   }
- 
-  return points;
-}
-
 // The main game loop
 var main = function () {
 	
@@ -782,56 +675,10 @@ var main = function () {
 	requestAnimationFrame(main);
 };
 
-	var pistolWorldProps = {
-		x:100,
-		y:100,
-		image:"images/pistolWorld.png",
-		width:32,
-		height:32,
-		offsetX:0,
-		offsetY:0,
-		frameY:0,
-		frameX:0,
-		bearing:45,
-	};
-	var shotgunWorldProps = {
-		image:"images/shotgunWorld.png",
-		width:64,
-		height:20,
-		bearing:191,
-		x:100,
-		y:100,
-	};
-	var tankAreaProps = {
-		x: canvas.width/8 /2,
-		y: canvas.height/8 /2,
-		width: canvas.width/8,
-		height:canvas.height/8,
-		bearing:0,
-	};
-	var rocketAreaProps = {
-		x: canvas.width - canvas.width/8 /2,
-		y: canvas.height/8 /2,
-		width:canvas.width/8,
-		height:canvas.height/8,
-		bearing:0,
-	};
-	var sniperAreaProps = {
-		x: canvas.width/8 /2,
-		y: canvas.height - canvas.height/8 /2,
-		width:canvas.width/8,
-		height:canvas.height/8,
-		bearing:0,
-	};
-	var scoutAreaProps = {
-		x: canvas.width - canvas.width/8 /2,
-		y: canvas.height - canvas.height/8 /2,
-		width:canvas.width/8,
-		height:canvas.height/8,
-		bearing:0,
-	};	
-	var heroProps = {
 	
+	var heroProps = {
+		
+		name:"hero",
 		ai:false,
 		style:"topDown",
 		spriteTorseSrc:"images/bkspr01.png",
@@ -842,13 +689,25 @@ var main = function () {
 		height:64, //
 		width:64,  //
 		health:128,
-		scale:2,
+		scale:1,
 		animations:heroAnimations,
 		controls:heroControls,
+		collisions:{
+			bullet:function( bullet ){
+				bullet.live = false; //bullet absorbed
+			},
+			worldProp:function( prop ){			
+				if( prop.collectable){
+					prop.live = false; //prop collected
+				};
+			},
+		},
 	
 	};
+	
 	var hero2Props = {
 		
+		name:"hero2",
 		ai:false,
 		style:"topDown",
 		spriteTorseSrc:"images/bkspr01.png",
@@ -862,43 +721,45 @@ var main = function () {
 		scale:1,
 		animations:heroAnimations,
 		controls:hero2Controls,
+		collisions:{
+			bullet:function( bullet ){
+				bullet.live = false;
+			},
+		},
 		
 	};
 	
 	//create background
-	var bgImage = new map( "images/background.png" );
-
-	//create weapon objects.
-	var pistol1handed = new tool(pistol1handedProps);
-	var pistol2handed = new tool(pistol2handedProps);
-	var shotgun = new tool(shotGunProps);	
+	var bgImage = new map( "images/background.png" );	
+	
+	//models
 	var worldShotgun = new worldProp( shotgunWorldProps );
 	var worldPistol = new worldProp( pistolWorldProps );
 	
+	//areas
 	var tankArea = new worldArea( tankAreaProps );
 	var rocketArea = new worldArea( rocketAreaProps );
-	var sniperArea = new worldArea( sniperAreaProps );
 	var scoutArea = new worldArea( scoutAreaProps );
-		
+
+	
+	//players
 	var hero = new player( heroProps );
 	var hero2 = new player( hero2Props );
 
-	var following = [hero, hero2];
-
-	var camera = new camera(following);
-
+	//camera
+	var camera = new camera([hero, hero2]);
+	
 	var gameMasterProps = {
-		debugging:true,
+		debugging:false,
 		camera:camera,
-		children:[ bgImage, worldShotgun, tankArea,rocketArea,sniperArea, scoutArea, hero, hero2 ],  //worldShotgun, worldPistol
+		children:[ bgImage, worldShotgun, worldPistol, tankArea,rocketArea, scoutArea, hero, hero2 ], 
 	};
+	var Game = new gameMaster( gameMasterProps );
 
-var Game = new gameMaster( gameMasterProps );
+	// Cross-browser support for requestAnimationFrame
+	var w = window;
+	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 
-// Cross-browser support for requestAnimationFrame
-var w = window;
-requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
-
-// Let's play this game!
-var then = Date.now();
-main();
+	// Let's play this game!
+	var then = Date.now();
+	main();

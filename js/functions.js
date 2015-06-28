@@ -1,3 +1,17 @@
+// Create the canvas
+var vCanvas = document.createElement("canvas");
+var vCtx = vCanvas.getContext("2d");
+vCanvas.width = 1000;
+vCanvas.height = 700;
+
+var canvas = document.createElement("canvas");
+var ctx = canvas.getContext("2d");
+canvas.width = 1000;
+canvas.height = 700;
+
+document.getElementById("lameGame").appendChild(canvas);
+
+
 var startRand = function(){	
 	if( this.x == undefined){
 		this.x = (Math.random() * (canvas.width - this.width/2));
@@ -12,22 +26,75 @@ var startRand = function(){
 
 var incAccuracy = function( amount ){};
 var decAccuracy = function( amount ){};
+
+//Game hinges
+
+//---------------------------------------------------------
+
+var incSpeed = function(amount){
+	if( amount == undefined){
+		this.speed += 0.1;
+	} else{
+		this.speed += amount;
+	};
+};
+var decSpeed = function(amount){
+	if( amount == undefined){
+		this.speed -= 0.1;
+	} else{
+		this.speed -= amount;
+	};
+};
+
+var incToughness = function(amount){
+	
+	if( amount == undefined){
+		this.toughness -= 0.1;
+	} else{
+		this.toughness -= amount;
+	};
+	
+};
+var decToughness = function(amount){
+	
+	if( amount == undefined){
+		this.toughness -= 0.1;
+	} else{
+		this.toughness -= amount;
+	};
+	
+};
+
+var incSize = function( amount ){
+	
+	if( amount == undefined){
+		this.scale += 0.001;
+	} else{
+		this.scale += amount;
+	};
+	
+};
+var decSize = function( amount ){
+	if( amount == undefined){
+		this.scale -= 0.001;
+	} else{
+		this.scale -= amount;
+	};
+};
+
 var heal = function( amount ){};
 var damage = function( amount ){};
-var inflate = function( amount ){};
-var deflate = function( amount ){};
-var moveUp = function( distance ){
-	this.y -= distance;
+
+var collide = function( obj ){	
+	if( this.collisions[ obj.type ] != undefined) this.collisions[ obj.type ]( obj);
 };
-var moveDown = function( distance ){
-	this.y += distance;
-};
-var moveLeft = function( distance ){
-	this.x -= distance;
-};
-var moveRight = function( distance ){
-	this.x += distance;
-};
+
+//----------------------------------------------------------
+
+var moveUp = function( distance ){	this.y -= distance; 	};
+var moveDown = function( distance ){	this.y += distance;};
+var moveLeft = function( distance ){	this.x -= distance;};
+var moveRight = function( distance ){	this.x += distance;};
 var move = function( distance, angle ){
 	
 	var sin = Math.sin( angle * Math.PI / 180  );
@@ -39,9 +106,8 @@ var move = function( distance, angle ){
 	this.x += x;
 	this.y -= y;	
 };
-var getBearing = function( changeX, changeY ){
-	
-};
+
+var getBearing = function( changeX, changeY ){};
 var getAngle = function(changeX, changeY){};
 var getTravel = function(changeX, changeY){};
 var drawCircle = function(x, y, size, color){
@@ -50,7 +116,8 @@ var drawCircle = function(x, y, size, color){
 	ctx.arc( x, y, size/2 , 0, Math.PI*2, true);
 	ctx.fill();	
 };
-var addToQuadrant = function(x, y, angle){
+
+/* var addToQuadrant = function(x, y, angle){
 	
 	if( 0 < angle && angle < 90){						
 		this.x += x;
@@ -69,7 +136,7 @@ var addToQuadrant = function(x, y, angle){
 		this.y -= y; 
 	}
 	
-}
+} */
 /* var updateChildren(){
 };
 var drawChildren(){
@@ -78,43 +145,7 @@ var drawChildren(){
 		this.children[i].draw();	
 	} 
 }; */
-
-
-//Not works......
-function touching(rect1 , rect2){
-			
-	rect1 = getPoints( rect1 );
-	rect2 = getPoints( rect2 );
-		
-		
-	var V = SAT.Vector;
-	var P = SAT.Polygon;
-		
-	var polygon1 = new P(new V(0,0), [
-			
-		new V(rect1[3].x, rect1[3].y),	
-		new V(rect1[2].x, rect1[2].y),	
-		new V(rect1[1].x, rect1[1].y),		
-		new V(rect1[0].x, rect1[0].y),
-
-	]);
-		
-		
-	var polygon2 = new P(new V(0,0), [
-			
-		new V(rect2[3].x, rect2[3].y),	
-		new V(rect2[2].x, rect2[2].y),
-		new V(rect2[1].x, rect2[1].y),
-		new V(rect2[0].x, rect2[0].y),
-		
-	]);
-		
-	var response = new SAT.Response();
-	return collided = SAT.testPolygonPolygon(polygon1, polygon2, response);
-	
-}
-
-function rotate(x, y, xm, ym, a) {
+/* function rotate(x, y, xm, ym, a) {
    
 
    var cos = Math.cos,
@@ -135,20 +166,63 @@ function rotate(x, y, xm, ym, a) {
 		y:yr,
 	};
 	
+} */
+
+function calculateEllipse(x, y, a, b, angle, steps) {
+  if (steps == null)
+    steps = 36;
+  var points = [];
+ 
+  // Angle is given by Degree Value
+  var beta = -angle * (Math.PI / 180); //(Math.PI/180) converts Degree Value into Radians
+  var sinbeta = Math.sin(beta);
+  var cosbeta = Math.cos(beta);
+ 
+  for (var i = 0; i < 360; i += 360 / steps) 
+  {
+    var alpha = i * (Math.PI / 180);
+    var sinalpha = Math.sin(alpha);
+    var cosalpha = Math.cos(alpha);
+ 
+    var X = x + (a * cosalpha * cosbeta - b * sinalpha * sinbeta);
+    var Y = y + (a * cosalpha * sinbeta + b * sinalpha * cosbeta);
+ 
+    //points.push(	new OpenLayers.Geometry.Point(X, Y)	);
+	points.push( {x:X,y:Y} );
+   }
+ 
+  return points;
+}
+
+function touching(rect1 , rect2){
+			
+	rect1 = getPoints( rect1 );
+	rect2 = getPoints( rect2 );		
+	var V = SAT.Vector;
+	var P = SAT.Polygon;
+	var polygon1 = new P(new V(0,0), [		
+		new V(rect1[3].x, rect1[3].y),	
+		new V(rect1[2].x, rect1[2].y),	
+		new V(rect1[1].x, rect1[1].y),		
+		new V(rect1[0].x, rect1[0].y),
+	]);
+	var polygon2 = new P(new V(0,0), [	
+		new V(rect2[3].x, rect2[3].y),	
+		new V(rect2[2].x, rect2[2].y),
+		new V(rect2[1].x, rect2[1].y),
+		new V(rect2[0].x, rect2[0].y),
+	]);	
+	var response = new SAT.Response();
+	return collided = SAT.testPolygonPolygon(polygon1, polygon2, response);
 }
 
 function getPoints( rect ){
-	
-	////console.log( rect);
-	
+		
 	var points = []
 	
 	var xOffset = 0;
 	var yOffset = 0;
-	
-	
 	//-------------------------------------------------------
-	
 	var sin = Math.sin(  ( 90 - rect.bearing) * Math.PI / 180 ); //both pos is ok.
 	var cos = Math.cos(  ( 90 - rect.bearing) * Math.PI / 180 ); //both pos is ok
 		
@@ -214,8 +288,6 @@ function getPoints( rect ){
 			x: rect.x + xOffset +  xNext0 + xNext1 + xNext2,
 			y: rect.y + yOffset +  yNext0 + yNext1 + yNext2,
 	});
-	
-
 	
 	return points
 };
