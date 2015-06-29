@@ -6,6 +6,7 @@ function worldMaster ( props ){
 function gameMaster( props ){
 	
 	this.children = [];
+	this.debugging = false;
 	
 	for (var attrname in props) { this[attrname] = props[attrname]; };
 		
@@ -55,17 +56,20 @@ function gameMaster( props ){
 					
 					//how many hitboxes the target has
 					for( var u = 0; u < targetCords.length; u++ ){
-												
-						if( touching( objectCords[y], targetCords[u] ) )	collisions.push( [ this.children[q] , this.children[j] ] );	
 						
+						var touch = touching( objectCords[y], targetCords[u] ); 
+		
+						
+						if( touch[0] )	collisions.push( [ this.children[q] , this.children[j] , touch[1]  ] );	
 					}
 				}
 			};	
 		};
 		//run the collisions
-		for (var i = 0; i < collisions.length; i++) {		
-			collisions[i][0].collide( collisions[i][1] );
-			collisions[i][1].collide( collisions[i][0] );
+		for (var i = 0; i < collisions.length; i++) {	
+						
+			collisions[i][0].collide( collisions[i][1], collisions[i][2] );
+			collisions[i][1].collide( collisions[i][0], collisions[i][2] );
 		};
 	};
 	
@@ -441,7 +445,8 @@ function camera(following){
 				
 			};
 			
-		}else{
+		}
+		else{
 			//average all....
 			var x = 0;
 			var y = 0;
@@ -674,11 +679,39 @@ var main = function () {
 	// Request to do this again ASAP
 	requestAnimationFrame(main);
 };
-
+	var PlayerCollisions = {
+		bullet:function( bullet ){
+			bullet.live = false; //bullet absorbed
+		},
+		worldProp:function( prop, hitInfo ){			
+				
+			if( prop.collectable){
+				
+			}else if( prop.solid){
+				
+				this.parent.x += hitInfo.overlapV.x;
+				this.parent.y += hitInfo.overlapV.y;
+			
+			}else{					
+				
+			};
+		},
+		player:function( op, hitInfo){
+			
+			this.parent.x -= hitInfo.overlapV.x /2;
+			this.parent.y -= hitInfo.overlapV.y /2;
+			
+			op.x += hitInfo.overlapV.x /2;
+			op.y += hitInfo.overlapV.y /2;
+			
+		},
+		
+	};
 	
 	var heroProps = {
 		
 		name:"hero",
+		solid:true,
 		ai:false,
 		style:"topDown",
 		spriteTorseSrc:"images/bkspr01.png",
@@ -692,22 +725,13 @@ var main = function () {
 		scale:1,
 		animations:heroAnimations,
 		controls:heroControls,
-		collisions:{
-			bullet:function( bullet ){
-				bullet.live = false; //bullet absorbed
-			},
-			worldProp:function( prop ){			
-				if( prop.collectable){
-					prop.live = false; //prop collected
-				};
-			},
-		},
-	
+		collisions:PlayerCollisions,
 	};
 	
 	var hero2Props = {
 		
 		name:"hero2",
+		solid:true,
 		ai:false,
 		style:"topDown",
 		spriteTorseSrc:"images/torsoRed.png",
@@ -721,31 +745,29 @@ var main = function () {
 		scale:1,
 		animations:heroAnimations,
 		controls:hero2Controls,
-		collisions:{
-			bullet:function( bullet ){
-				bullet.live = false; //bullet absorbed
-			},
-			worldProp:function( prop ){			
-				if( prop.collectable){
-					prop.live = false; //prop collected
-				};
-			},
-		},
+		collisions:PlayerCollisions,
 		
 	};
 	
 	//create background
-	var bgImage = new map( "images/background.png" );	
+	var bgImage = new map( "images/map1.png" );	
 	
 	//models
 	var worldShotgun = new worldProp( shotgunWorldProps );
+	var worldShotgun2 = new worldProp( shotgunWorldProps );
 	var worldPistol = new worldProp( pistolWorldProps );
 	
 	//areas
 	var tankArea = new worldArea( tankAreaProps );
 	var rocketArea = new worldArea( rocketAreaProps );
 	var scoutArea = new worldArea( scoutAreaProps );
-
+	
+	//walls
+	var topWall = new worldArea( topWallProps );
+	var bottomWall = new worldArea( bottomWallProps );
+	
+	var leftWall = new worldArea( leftWallProps );
+	var rightWall = new worldArea( rightWallProps );
 	
 	//players
 	var hero = new player( heroProps );
@@ -755,9 +777,8 @@ var main = function () {
 	var camera = new camera([hero, hero2]);
 	
 	var gameMasterProps = {
-		debugging:false,
 		camera:camera,
-		children:[ bgImage, worldShotgun, worldPistol, tankArea,rocketArea, scoutArea, hero, hero2 ], 
+		children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall, hero, hero2 ], 
 	};
 	var Game = new gameMaster( gameMasterProps );
 

@@ -1,7 +1,7 @@
 var pistol1handedProps = {
 	
 	animation:"oneHanded",
-	name:"pistol 1 handed",
+	name:"Pistol 1 handed",
 	gunHeldSrc:"images/pistol.png",
 	xOffset:10, //in use
 	yOffset:-30, //in use
@@ -25,7 +25,7 @@ var pistol2handedProps = {
 	
 	
 	animation:"twoHanded",
-	name:"pistol 2 handed",
+	name:"Pistol 2 handed",
 		
 	gunHeldSrc:"images/pistol.png",
 	useRate:6,

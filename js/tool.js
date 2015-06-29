@@ -3,7 +3,9 @@ function tool(props){
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
 	}	
-		
+	
+	this.weaponDelay = new deBounce( 1 / this.useRate );
+	
 	this.image = new Image();
 	this.image.src = props.gunHeldSrc;
 	
@@ -21,21 +23,10 @@ function tool(props){
 
 tool.prototype = {
 	update:function(modifier){
-		if( this.toolReady == false ){
-						
-			var shotDelay = 1 / this.useRate  ;
-			
-			if(this.userRateTimer > shotDelay ){					
-				this.toolReady = true;
-				this.userRateTimer = 0;
-				
-			}else{
-				this.toolReady = false;
-				this.userRateTimer += modifier;
-			}
-			
-		};
 		
+		
+		this.weaponDelay.update( modifier );
+				
 		this.x = this.parent.x;
 		this.y = this.parent.y; 
 		this.bearing = this.parent.bearing["1"]; //
@@ -63,7 +54,8 @@ tool.prototype = {
 			this.moveRight( this.bulletOffsetY * this.parent.scale );
 			this.moveUp( this.bulletOffsetX * this.parent.scale );
 			
-		}else{
+		}
+		else{
 			
 			var a = this.bulletOffsetX * this.parent.scale;
 			var b = this.bulletOffsetY * this.parent.scale * -1; //this is negative.
@@ -92,8 +84,9 @@ tool.prototype = {
 		//ctx.drawImage(this.image, this.frameX * (this.currentFrames.layer1.y - 1), this.frameY * (this.currentFrames.layer1.x - 1), this.frameX, this.frameY, -this.width/2, -this.height/2 ,this.width,this.height);
 	},
 	fire:function( time ){
-		if(this.toolReady == true){
 		
+		if(  this.weaponDelay.ready() ){
+						
 			var gap = this.bulletSpread / ( this.bulletsPerFire +1 ); // =1		
 			var incriment= 0;	
 			var orignalDirection = this.bearing;		
@@ -152,11 +145,7 @@ function Bullet(tool){
 
 Bullet.prototype = {
 	update:function(modifier){	
-		//hit box of map.
-		if(this.x > 999 || this.x < -999  || this.y > 999 || this.y < -999 ){
-			this.live = false;
-			return false;
-		}	
+		
 		var travel = this.speed * modifier;
 		
 		if( this.bearing == 0 ) this.moveUp( travel );
@@ -176,7 +165,6 @@ Bullet.prototype = {
 				yOffset: - this.bulletSize/2,
 			},
 		]; 	
-		
 	},
 	drawCircle,
 	moveUp,

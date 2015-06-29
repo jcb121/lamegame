@@ -18,6 +18,14 @@
 		<script src="bootstrap/js/bootstrap.js"></script>
 		
 		
+		<script>
+			$(document).ready(function(){
+					$("#debug").click(function(){	
+						if( Game.debugging ){		Game.debugging = false;	}else{	Game.debugging = true;		}						
+					});
+			});
+		</script>
+		
 	</head>
 	<body>
 			
@@ -26,7 +34,7 @@
 		</div>
 		
 		<div>
-			
+				<button id="debug" class="btn btn-default" >debug</button>
 		</div>
 		
 		

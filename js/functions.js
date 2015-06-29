@@ -30,6 +30,8 @@ var decAccuracy = function( amount ){};
 //Game hinges
 
 //---------------------------------------------------------
+var heal = function( amount, toughness ){};
+var damage = function( amount, toughness ){};
 
 var incSpeed = function(amount){
 	if( amount == undefined){
@@ -82,12 +84,69 @@ var decSize = function( amount ){
 	};
 };
 
-var heal = function( amount ){};
-var damage = function( amount ){};
+//works nice!
+var deBounce = function( time ){
+	
+	this.state = false;
+	this.delay = time;
+	this.currentTime = 0;
+	
+	
+	this.update = function( time ){
+		
+		this.currentTime += time;
+		
+		if( this.currentTime > this.delay ){	
+			this.state = true;
+		}else{	
+			this.state = false;
+		}
+		
+	};
+	
+	this.ready = function(){
+		
+		if( this.state ){   //
+			
+			this.state = false;
+			this.currentTime = 0;
+			return true;
+			
+		}else{
+				return this.state; //it return false.
+		}
+	};
+	
+	
+}
 
-var collide = function( obj ){	
-	if( this.collisions[ obj.type ] != undefined) this.collisions[ obj.type ]( obj);
+var collide = function( obj, hitInfo ){	
+	if( this.collisions != undefined){
+		if( this.collisions[ obj.type ] != undefined) {
+			this.collisions[ obj.type ]( obj , hitInfo);
+		} 
+	};
 };
+
+var lacksTool = function( newplayer, tool){	
+
+		var lacksTool = true;
+		for(  var i = 0; i < newplayer.inventory.length; i++){
+			
+			if( newplayer.inventory[i] != undefined) {
+					
+				if( newplayer.inventory[i].name == tool){
+					lacksTool = false;
+				};							
+			};
+		};
+		return lacksTool;
+	}
+
+
+
+
+
 
 //----------------------------------------------------------
 
@@ -213,7 +272,10 @@ function touching(rect1 , rect2){
 		new V(rect2[0].x, rect2[0].y),
 	]);	
 	var response = new SAT.Response();
-	return collided = SAT.testPolygonPolygon(polygon1, polygon2, response);
+
+	var collided = SAT.testPolygonPolygon(polygon1, polygon2, response);
+	
+	return [ collided, response ];
 }
 
 function getPoints( rect ){

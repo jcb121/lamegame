@@ -1,10 +1,17 @@
 function worldProp( props ){
-
-	this.collisions;
 	
+	this.collectable = false;
+	this.solid = false;
+		
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
-	}	
+	}
+	
+	this.collisions = {};
+	for (var attrname in props.collisions) { 
+		this.collisions[attrname] = props.collisions[attrname]; 
+	}
+	this.collisions.parent = this;	
 	
 	this.type = "worldProp";
 	
@@ -49,11 +56,15 @@ worldProp.prototype = {
 
 function worldArea( props ){
 	
-	this.collisions;
-	
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
-	}	
+	}
+	
+	this.collisions = {};
+	for (var attrname in props.collisions) { 
+		this.collisions[attrname] = props.collisions[attrname]; 
+	}
+	this.collisions.parent = this;		
 	
 	this.type = "worldArea";
 	this.hitboxCords = [];
@@ -87,13 +98,7 @@ worldArea.prototype = {
 
 		ctx.restore();
 	},
-	collide:function( obj){
-		
-		if( this.collisions[ obj.type ] != undefined){
-			this.collisions[ obj.type ]( obj);
-		};
-		
-	},
+	collide,
 };
 
 

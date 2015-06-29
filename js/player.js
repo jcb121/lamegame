@@ -1,20 +1,26 @@
 function player(properties){
 	
-	this.collisions = {};
+	
+	
+	this.type = "player";
 	
 	for (var attrname in properties) { 
 		this[attrname] = properties[attrname]; 
 	}	
 	
+	this.collisions = {};
+	for (var attrname in properties.collisions) { 
+		this.collisions[attrname] = properties.collisions[attrname]; 
+	}
+	this.collisions.parent = this;	
+
+	
+	this.switchWeaponDelay = new deBounce( 0.2 );
+	
 	this.startRand();
-		
 	this.hitboxCords = [];
-	
 	this.currentTool = 0; //index
-	//this.inventory = [ undefined ]; //array
-	
-	this.type = "player";
-	
+
 	if( this.inventory == undefined ){
 		this.inventory = [undefined];
 	}else{
@@ -103,11 +109,13 @@ function player(properties){
 player.prototype = {
 	update:function(modifier){
 		
-		this.currentTool = 1;
+		this.switchWeaponDelay.update( modifier );
 		
 		var time = modifier;
 		var currentTool = this.inventory[ this.currentTool ];
 		var hands = 0;
+		
+		this.travel = 0;
 		
 		if ( currentTool !== undefined) { 			
 			currentTool.update(time);
@@ -116,66 +124,55 @@ player.prototype = {
 		}
 				
 		var moving = 0;
-		var angle = 0;		
+		var angle = 0;			
 		
+		this.travel = this.speed * modifier;
+
 		if (this.controls.left in keysDown) { // Player holding left
-				
-			var travel = this.speed * modifier;
-			this.x -= travel;
-				
 			angle += 270;
 			moving++;	
 		}
 		if (this.controls.down in keysDown) { // Player holding down
-						
-			var travel = this.speed * modifier;
-			this.y += travel;
-		
 			angle += 180; //pointing down!			
 			moving++;
 		}
 		if (this.controls.right in keysDown) { // Player holding right
-			
-				
-			var travel = this.speed * modifier;
-			this.x += travel;
-	
 			angle += 90; //pointing down!	
 			moving++;
 		}
 		if (this.controls.up in keysDown) { // Player holding up
-				
-			var travel = this.speed * modifier;
-			this.y -= travel;
-
 			angle -= 360; //keep pointing up!	
 			moving++;
 		}	
-		
-		/* if( this.controls.slot0 in keysDown){	//num1
-			//console.log("puts guns away pistol");
-			this.currentTool = undefined;
-		}
-		if( this.controls.slot1 in keysDown){	//num1
-			//console.log("pulls out a 1 handed pistol");
-			this.currentTool = pistol1handed;	
-		}
-		if( this.controls.slot2 in keysDown){	//num2
-			//console.log("pulls out a 2 handed pistol");
-			this.currentTool = pistol2handed;
-		}
-		if( this.controls.slot3 in keysDown){	//num2
-			//console.log("pulls out a shotgun");
-			this.currentTool = shotgun;
-		} */
 
 		
-		if (this.controls.shoot in keysDown) { // space /	shoot!	
+		if( this.controls.next in keysDown){	
 			
+			if( this.switchWeaponDelay.ready() ){
+				console.log( this.inventory, this.currentTool );
+				if( this.currentTool < this.inventory.length -1 ){	
+					this.currentTool++;	
+				}else{	
+					this.currentTool = 0;
+				}
+				
+			}		
+		}
+		if( this.controls.prev in keysDown){
+			
+			if( this.switchWeaponDelay.ready() ){
+				if( this.currentTool > 0 ){			
+					this.currentTool--;
+				}else{		
+					this.currentTool = this.inventory.length -1;
+				}				
+			}
+		}
+		
+		if (this.controls.shoot in keysDown) { // space /	shoot!			
 			if ( currentTool !== undefined) { 
 				currentTool.fire(time);
 			}
-			
 		}		
 		
 		// vars above are currentTool, angle and moving.....
@@ -185,20 +182,19 @@ player.prototype = {
 			//fixes the angle issue....
 			if(moving > 1){			
 				angle = angle/moving;
-
 				if(angle == -135){				
 					angle += 180;	
 				}
 				if(angle == -45){
 					angle += 360;	
-				}
-				
-			}else{
-				
+				}	
+			}else{			
 				if(angle == -360){
 					angle = 0;
 				} 
 			}
+			
+			this.move( this.travel, angle);
 			
 			this.bearing["0"] = angle;
 			this.bearing["1"] = angle;
@@ -210,22 +206,14 @@ player.prototype = {
 			
 			this.state["0"] = "standing";
 			this.state["1"] = "standing";
+			
 		}	
 		
 		//weapon always overwrites standing....
-		if( currentTool !== undefined ){	
-			this.state["1"] = currentTool.animation;
-		}
-				
-		//hit boxes are on layer 1!		
+		if( currentTool !== undefined ) this.state["1"] = currentTool.animation;
 		
-		//------------------------------------------------------------
-		
+					
 		var hitBoxes = this.animations[ this.state[1] ].hitBoxes;
-		
-		//WORK OUT SCALE.....
-		
-		
 		this.hitboxCords = [ //array of all cords Cord being one square.....
 			{
 				x:this.x,
@@ -259,7 +247,6 @@ player.prototype = {
 			},
 		];
 		
-			
 		this.chooseFrame( time );
 	},
 	chooseFrame:function(time){
@@ -368,4 +355,5 @@ player.prototype = {
 	incToughness,
 	decToughness,
 	damage,
+	move,
 }
