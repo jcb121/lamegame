@@ -139,9 +139,9 @@ player.prototype = {
 
 		
 		this.controllerIndex = 0;
-		var pad = navigator.getGamepads()[ this.controllerIndex ];
 		
-		
+		console.log( navigator.getGamepads() );
+		var pad = navigator.getGamepads()[ this.controllerIndex ];		
 		
 		if (this.controls.left in keysDown ||  pad.buttons[14].pressed ) { // Player holding left
 			angle += 270;
