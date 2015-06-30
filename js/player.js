@@ -1,9 +1,8 @@
 function player(properties){
 	
-	
-	
+	//Default Values....
 	this.type = "player";
-	
+		
 	for (var attrname in properties) { 
 		this[attrname] = properties[attrname]; 
 	}	
@@ -13,14 +12,16 @@ function player(properties){
 		this.collisions[attrname] = properties.collisions[attrname]; 
 	}
 	this.collisions.parent = this;	
+	
 
+	this.phaseClass(); //setup the class
 	
 	this.switchWeaponDelay = new deBounce( 0.2 );
 	
-	this.startRand();
+	this.startRand(); //start the player
 	this.hitboxCords = [];
+	
 	this.currentTool = 0; //index
-
 	if( this.inventory == undefined ){
 		this.inventory = [undefined];
 	}else{
@@ -348,12 +349,8 @@ player.prototype = {
 		ctx.fillText( "player.x:" + this.x + " player.y:" + this.y,50,50);	
 	},
 	startRand,
-	incSize,
-	decSize,
-	incSpeed,
-	decSpeed,
-	incToughness,
-	decToughness,
+	calculateBalance,
+	phaseClass,
 	damage,
 	move,
 }

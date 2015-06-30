@@ -56,10 +56,7 @@ function gameMaster( props ){
 					
 					//how many hitboxes the target has
 					for( var u = 0; u < targetCords.length; u++ ){
-						
 						var touch = touching( objectCords[y], targetCords[u] ); 
-		
-						
 						if( touch[0] )	collisions.push( [ this.children[q] , this.children[j] , touch[1]  ] );	
 					}
 				}
@@ -68,8 +65,8 @@ function gameMaster( props ){
 		//run the collisions
 		for (var i = 0; i < collisions.length; i++) {	
 						
-			collisions[i][0].collide( collisions[i][1], collisions[i][2] );
-			collisions[i][1].collide( collisions[i][0], collisions[i][2] );
+			collisions[i][0].collide( collisions[i][1], collisions[i][2], modifier );
+			collisions[i][1].collide( collisions[i][0], collisions[i][2], modifier );
 		};
 	};
 	
@@ -580,19 +577,15 @@ var init = function () {
 
 
 var gamepads = [];
-
 function gamepadHandler(event, connecting) {
   
   var gamepad = event.gamepad;
   // Note:
   //gamepad = navigator.getGamepads()[gamepad.index];
 
-	if (connecting) {
-		
+	if (connecting) {	
 		gamepads[gamepad.index] = gamepad;
-
 	} else {
-	  
 		gamepads.splice( gamepad.index, 1);
 	}
 }
@@ -679,34 +672,15 @@ var main = function () {
 	// Request to do this again ASAP
 	requestAnimationFrame(main);
 };
+	
+	
+	
 	var PlayerCollisions = {
-		bullet:function( bullet ){
-			bullet.live = false; //bullet absorbed
-		},
-		worldProp:function( prop, hitInfo ){			
-				
-			if( prop.collectable){
-				
-			}else if( prop.solid){
-				
-				this.parent.x += hitInfo.overlapV.x;
-				this.parent.y += hitInfo.overlapV.y;
-			
-			}else{					
-				
-			};
-		},
-		player:function( op, hitInfo){
-			
-			this.parent.x -= hitInfo.overlapV.x /2;
-			this.parent.y -= hitInfo.overlapV.y /2;
-			
-			op.x += hitInfo.overlapV.x /2;
-			op.y += hitInfo.overlapV.y /2;
-			
-		},
+		
+		player:dynamicCollide,
 		
 	};
+	
 	
 	var heroProps = {
 		
@@ -722,12 +696,10 @@ var main = function () {
 		height:64, //
 		width:64,  //
 		health:128,
-		scale:1,
 		animations:heroAnimations,
 		controls:heroControls,
 		collisions:PlayerCollisions,
 	};
-	
 	var hero2Props = {
 		
 		name:"hero2",
@@ -742,7 +714,6 @@ var main = function () {
 		height:64,
 		width:64,
 		health:128,
-		scale:1,
 		animations:heroAnimations,
 		controls:hero2Controls,
 		collisions:PlayerCollisions,

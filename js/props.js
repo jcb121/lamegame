@@ -18,6 +18,8 @@
 					
 					player.inventory.push( pistol1handed );
 					player.inventory.push( pistol2handed );
+					
+					this.parent.live = false;
 				
 				}				
 			}
@@ -41,7 +43,7 @@
 					shotgun.parent = player;
 					player.inventory.push( shotgun );
 					
-					this.parent.live = false; //does work here!!!
+					this.parent.live = false; 
 					
 				}
 			}
@@ -55,10 +57,21 @@
 		height:canvas.height/8,
 		bearing:0,
 		collisions:{
-			player:function( player ){				
-				player.incSize();
-				player.incToughness();
-				player.decSpeed();
+			player:function( player, hitInfo, time ){		
+
+				player.phaseClass();
+				
+				
+				
+				if( 0 <= player.key && player.key <= 90 ){			
+					player.key += 0.5 * time;
+				}
+				else if( 90 <= player.key && player.key <=  270 ){
+					player.key -= 0.5 * time;		
+				}else if( 270 <= player.key && player.key <=  360 ){				
+					player.key += 0.5 * time;
+					if( player.key < 0) player.key -= 360; 
+				}
 			},
 		},
 	};
@@ -70,11 +83,22 @@
 		height:canvas.height/8,
 		bearing:0,
 		collisions:{
-			player:function( player ){
+			player:function( player, hi, time ){
 				
-				player.incToughness();
-				player.incSpeed();
-				player.incSize();
+				player.phaseClass();
+				
+				if(  0 <= player.key && player.key <= 90 ){
+					player.key -= 0.5 * time; 
+				}
+				else if(  90 <= player.key && player.key <= 180 ){
+					player.key += 0.5 * time;
+				}
+				else if(  180 <= player.key && player.key <= 270 ){
+					player.key -= 0.5 * time;
+				}
+				else if(  270 <= player.key && player.key <= 360 ){
+					player.key += 0.5 * time;
+				}
 				
 			},
 		},
@@ -87,17 +111,28 @@
 		height:canvas.height/8,
 		bearing:0,
 		collisions:{
-			player:function( player ){
+			player:function( player, hi, time ){
 				
-				player.incSpeed();
-				player.decSize();
-				player.deccToughness
-				
+				player.phaseClass();
+					
+				if( 90 <= player.key && player.key <= 270 ){								
+					player.key += 0.5 * time;
+				}
+				else if( 270 <= player.key && player.key <=  360 ){			
+					player.key -= 0.5 * time;		
+				}else if( 0 <= player.key && player.key <=  89 ){				
+					player.key -= 0.5 * time;
+					if( player.key < 0) player.key += 360; 
+				}
 			},
 		},
 	};	
 	
-	//World Hit Boxes..........
+	//World Hit Boxes..........	
+	var wallCollisions = {
+		player:staticCollide,
+		bullet:killCollide,
+	}
 	
 	var topWallProps = {
 		x:2560/2,
@@ -106,17 +141,7 @@
 		width:2560,
 		bearing:0,
 		solid:true,
-		collisions:{
-			player:function( player, hitInfo ){
-				
-				player.x += hitInfo.overlapV.x;
-				player.y += hitInfo.overlapV.y;
-			
-			},
-			bullet:function( bullet ){
-				bullet.live = false;
-			},
-		},
+		collisions:wallCollisions,
 	};
 	
 	var bottomWallProps = {
@@ -126,17 +151,7 @@
 		width:2560,
 		bearing:0,
 		solid:true,
-		collisions:{
-			player:function( player, hitInfo ){
-				
-				player.x += hitInfo.overlapV.x;
-				player.y += hitInfo.overlapV.y;
-			
-			},
-			bullet:function( bullet ){
-				bullet.live = false;
-			},
-		},
+		collisions:wallCollisions,
 	};
 	
 	var leftWallProps = {
@@ -146,17 +161,7 @@
 		width:20,
 		bearing:0,
 		solid:true,
-		collisions:{
-			player:function( player, hitInfo ){
-				
-				player.x += hitInfo.overlapV.x;
-				player.y += hitInfo.overlapV.y;
-			
-			},
-			bullet:function( bullet ){
-				bullet.live = false;
-			},
-		},
+		collisions:wallCollisions,
 	};
 	
 	var rightWallProps = {
@@ -166,16 +171,8 @@
 		width:20,
 		bearing:0,
 		solid:true,
-		collisions:{
-			player:function( player, hitInfo ){
-				
-				player.x += hitInfo.overlapV.x;
-				player.y += hitInfo.overlapV.y;
-			
-			},
-			bullet:function( bullet ){
-				bullet.live = false;
-			},
-		},
+		collisions:wallCollisions,
 	};
+	
+
 	

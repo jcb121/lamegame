@@ -10,15 +10,10 @@ function tool(props){
 	this.image.src = props.gunHeldSrc;
 	
 	this.parent;
-	this.children = [];
 	
-	this.ammo = 0;
 	this.x = 0;
 	this.y = 0; 
-	//this.bearing = 0;
-	this.userRateTimer = 0;
-	this.toolReady = true;
-	
+
 }
 
 tool.prototype = {
@@ -27,63 +22,38 @@ tool.prototype = {
 		
 		this.weaponDelay.update( modifier );
 				
-		this.x = this.parent.x;
+		this.x = this.parent.x; 
 		this.y = this.parent.y; 
 		this.bearing = this.parent.bearing["1"]; //
 		
-		if( this.bearing == 0 ){ //up
 		
-			this.moveDown( this.bulletOffsetY * this.parent.scale );
-			this.moveRight( this.bulletOffsetX * this.parent.scale );
-			
-		}
-		else if( this.bearing == 90 ){ //right		
+		var a = this.bulletOffsetX * this.parent.scale;
+		var b = this.bulletOffsetY * this.parent.scale * -1; //this is negative.
 		
-			this.moveLeft( this.bulletOffsetY * this.parent.scale );
-			this.moveDown( this.bulletOffsetX * this.parent.scale );
-			
-		}
-		else if( this.bearing == 180 ){ //down		
+		var toolDistance = Math.sqrt(a*a + b*b);
 		
-			this.moveUp( this.bulletOffsetY * this.parent.scale );
-			this.moveLeft( this.bulletOffsetX * this.parent.scale );
-			
-		}
-		else if( this.bearing == 270 ){ //left	
+		var toolAngle = Math.atan( b / a ) * 180 / Math.PI;
 		
-			this.moveRight( this.bulletOffsetY * this.parent.scale );
-			this.moveUp( this.bulletOffsetX * this.parent.scale );
-			
-		}
-		else{
-			
-			var a = this.bulletOffsetX * this.parent.scale;
-			var b = this.bulletOffsetY * this.parent.scale * -1; //this is negative.
-			
-			var toolDistance = Math.sqrt(a*a + b*b);
-			
-			var toolAngle = Math.atan( b / a ) * 180 / Math.PI;
-			
-			var worldToToolAngle = this.bearing + 90 - toolAngle; //fine.
-			
-			worldToToolAngle -= 90;
-			worldToToolAngle *= -1;			
-			
-			var sin = Math.sin( worldToToolAngle * Math.PI / 180  ); //0.874		
-			var cos = Math.cos( worldToToolAngle * Math.PI / 180  ); //0.485
+		var worldToToolAngle = this.bearing + 90 - toolAngle; //fine.
+		
+		worldToToolAngle -= 90;
+		worldToToolAngle *= -1;			
+		
+		var sin = Math.sin( worldToToolAngle * Math.PI / 180  ); //0.874		
+		var cos = Math.cos( worldToToolAngle * Math.PI / 180  ); //0.485
 
-			var x = cos * toolDistance;
-			var y = sin * toolDistance;
-			
-			this.x += x;
-			this.y -= y; 
-		};
+		var x = cos * toolDistance;
+		var y = sin * toolDistance;
+		
+		this.x += x;
+		this.y -= y; 
+	
 	},
 	draw:function(){
 		ctx.drawImage(this.image, this.xOffset * this.parent.scale, this.yOffset * this.parent.scale, this.width * this.parent.scale, this.height * this.parent.scale);
 		//ctx.drawImage(this.image, this.frameX * (this.currentFrames.layer1.y - 1), this.frameY * (this.currentFrames.layer1.x - 1), this.frameX, this.frameY, -this.width/2, -this.height/2 ,this.width,this.height);
 	},
-	fire:function( time ){
+	fire:function( time ){ //fire could be user added.....
 		
 		if(  this.weaponDelay.ready() ){
 						
@@ -105,15 +75,10 @@ tool.prototype = {
 				var bullet = new Bullet(this);	
 				this.bearing = orignalDirection;
 				Game.addObject(bullet);
-				this.toolReady = false;
+			
 			}	
 		}
 	},
-	moveUp,
-	moveDown,
-	moveRight,
-	moveLeft,
-	move,
 };
 
 function Bullet(tool){
@@ -127,11 +92,10 @@ function Bullet(tool){
 	this.type = "bullet";
 		
 	this.collisions = {
+		parent:this,
 		player: function( player ){
-			player.damage();
-		},
-		worldProp:function( prop ){
-			
+				this.parent.live = false;
+				player.damage();
 		},
 	};
 	
@@ -147,12 +111,8 @@ Bullet.prototype = {
 	update:function(modifier){	
 		
 		var travel = this.speed * modifier;
-		
-		if( this.bearing == 0 ) this.moveUp( travel );
-		else if( this.bearing == 90 ) this.moveRight(travel);
-		else if( this.bearing == 180 ) this.moveDown(travel);
-		else if( this.bearing == 270 ) this.moveLeft(travel);
-		else this.move( travel, this.bearing );
+				
+		this.move( travel, this.bearing );
 						
 		this.hitboxCords = [  
 			{
@@ -167,10 +127,6 @@ Bullet.prototype = {
 		]; 	
 	},
 	drawCircle,
-	moveUp,
-	moveDown,
-	moveLeft,
-	moveRight,
 	move,
 	draw:function(){
 		this.drawCircle( this.x, this.y, this.bulletSize, "black");
