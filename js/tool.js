@@ -1,13 +1,22 @@
 function tool(props){
 	
+	this.type = "tool";
+	
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
-	}	
-	
+	}
+
 	this.weaponDelay = new deBounce( 1 / this.useRate );
 	
 	this.image = new Image();
 	this.image.src = props.gunHeldSrc;
+	var obj = this;
+	this.image.onload = function(){	
+		(function(that){	
+			that.ready = true;
+		})(obj);
+	};
+	
 	
 	this.parent;
 	
@@ -19,6 +28,7 @@ function tool(props){
 tool.prototype = {
 	update:function(modifier){
 		
+		if(  this.ready == undefined || this.ready == false ) return false;
 		
 		this.weaponDelay.update( modifier );
 				
@@ -50,10 +60,14 @@ tool.prototype = {
 	
 	},
 	draw:function(){
+		if(  this.ready == undefined || this.ready == false ) return false;
+		
 		ctx.drawImage(this.image, this.xOffset * this.parent.scale, this.yOffset * this.parent.scale, this.width * this.parent.scale, this.height * this.parent.scale);
 		//ctx.drawImage(this.image, this.frameX * (this.currentFrames.layer1.y - 1), this.frameY * (this.currentFrames.layer1.x - 1), this.frameX, this.frameY, -this.width/2, -this.height/2 ,this.width,this.height);
 	},
 	fire:function( time ){ //fire could be user added.....
+		
+		if(  this.ready == undefined || this.ready == false ) return false;
 		
 		if(  this.weaponDelay.ready() ){
 						
@@ -74,8 +88,10 @@ tool.prototype = {
 				
 				var bullet = new Bullet(this);	
 				this.bearing = orignalDirection;
-				Game.addObject(bullet);
-			
+				
+				//hack
+				this.parent.parent.addObject(bullet);
+
 			}	
 		}
 	},
@@ -106,7 +122,6 @@ function Bullet(tool){
 		this.bearing -= 360;
 	};
 }
-
 Bullet.prototype = {
 	update:function(modifier){	
 		

@@ -1,3 +1,10 @@
+	var bgProps = {
+		image:"images/map1.png",
+		x:0,
+		y:0,
+		bearing:0,
+	}
+	
 	var pistolWorldProps = {
 		name:"Pistol 1 handed",
 		image:"images/pistolWorld.png",

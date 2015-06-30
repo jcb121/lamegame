@@ -1,9 +1,67 @@
-function worldMaster ( props ){
-	this.update = function(time){}
-	this.draw = function(){}
+function WorldMaster ( props ){
+		
+	this.ready = false;
+	
+	debugging = props.debugging;
+	this.debugging = props.debugging;
+	
+	this.mode = props.mode;
+	this.children = props.children;
+
+	for( var i = 0; i < this.children.length; i++ ){
+		this.children[i].parent = this;
+	};
+	
+};
+
+
+
+WorldMaster.prototype = {
+	update:function( modifier ){ //does nothing really!
+		this.children[ this.mode ].update( modifier );	
+		
+		var gamepads = navigator.getGamepads();
+		
+		for (var i = 0; i < gamepads.length; ++i){	
+			
+			var pad = gamepads[i];			
+			
+			if( pad != undefined){
+				
+				//console.log( pad.axes[1] );
+				
+				/* for( var j = 0; j < pad.buttons.length; j++){
+					
+					if( pad.buttons[j].pressed){
+						console.log( pad, j);
+					}
+				} */
+			};
+			
+			
+		}
+	},
+	draw:function(){
+		this.children[ this.mode ].draw();
+	},
+	checkReady:function(){
+		var checks = 0;
+		for( var i = 0; i < this.children.length; i++){
+			if( this.children[i].ready == undefined || this.children[i].ready == false){
+				checks++
+			};
+		}
+		if( checks == 0 ){
+			return true;
+		}else{
+			return false;
+		}
+	},
 }
 
 function gameMaster( props ){
+	
+	this.ready = false;
 	
 	this.children = [];
 	this.debugging = false;
@@ -14,10 +72,12 @@ function gameMaster( props ){
 		this.children.push(object);
 	};	
 	
+	for( var i = 0; i < this.children.length; i++ ){
+		this.children[i].parent = this;
+	};
+	
 	this.update = function(modifier){		
-		
-		var collisions = [];
-		
+			
 		//update the camera DUH!
 		this.camera.update();
 		
@@ -32,42 +92,7 @@ function gameMaster( props ){
 			this.children[i].update(modifier);	
 		};
 		
-		//Works out collisions
-		//for the amount of objects in gameMaster.....
-		for (var j = 0; j < this.children.length; j++) {		
-			
-			//if the object doesn't have a kitbox, skip it.
-			if( this.children[j].hitboxCords == undefined ){ continue;};	
-			
-			//all of the objects hit boxes.
-			var objectCords = this.children[j].hitboxCords ;
-			
-			
-			//for the amount of objects in gameMaster.....
-			for (var q = 0; q < this.children.length; q++) {		
-				//skip if it's the smae object or undefined.
-				if(j >= q || this.children[q].hitboxCords == undefined ){continue;}						
-				
-				//all of the targets hitboxes.
-				var targetCords = this.children[q].hitboxCords;
-				
-				//how many hitboxes the object has				
-				for( var y = 0; y < objectCords.length; y++ ){
-					
-					//how many hitboxes the target has
-					for( var u = 0; u < targetCords.length; u++ ){
-						var touch = touching( objectCords[y], targetCords[u] ); 
-						if( touch[0] )	collisions.push( [ this.children[q] , this.children[j] , touch[1]  ] );	
-					}
-				}
-			};	
-		};
-		//run the collisions
-		for (var i = 0; i < collisions.length; i++) {	
-						
-			collisions[i][0].collide( collisions[i][1], collisions[i][2], modifier );
-			collisions[i][1].collide( collisions[i][0], collisions[i][2], modifier );
-		};
+		getCollisions( this.children, modifier);
 	};
 	
 	this.draw = function(){		
@@ -129,7 +154,26 @@ function gameMaster( props ){
 	};
 };
 
-function camera(following){
+gameMaster.prototype = {
+	
+	checkReady:function(){
+		var checks = 0;
+		for( var i = 0; i < this.children.length; i++){
+			if( this.children[i].ready == undefined || this.children[i].ready == false){
+				checks++
+			};
+		}
+		if( checks == 0 ){
+			return true;
+		}else{
+			return false;
+		}
+	},
+	
+	
+};
+
+function Camera(following){
 	
 	var frame;
 	
@@ -495,40 +539,9 @@ function camera(following){
 	};
 }
 
-function map(imageLoc){
-	
-	this.ready = false;
-	this.height;
-	this.width;
-	this.x = 0;
-	this.y = 0;
-	
-	this.image = new Image();
-	this.image.src = imageLoc;
-	
-	 this.image.onload = (function(map){
-		map.ready = true;	
-	})(this);
-	
-	
-	this.update = function(){
-				
-	};
-	
-	this.draw = function(x,y){	
-		if (this.ready) {
-			if(arguments.length == 0){
-				ctx.drawImage(this.image, this.x, this.y);
-			}else{
-				ctx.drawImage(this.image, x, y);			
-			}
-		}
-	}	
-};
 
 // Handle keyboard controls
 var keysDown = {};
-
 
 addEventListener("keydown", function (e) {
 	keysDown[e.keyCode] = true;
@@ -536,53 +549,58 @@ addEventListener("keydown", function (e) {
 addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
+
+
+
+
+
+
+//works for new controllers only....
 addEventListener("gamepadconnected", function(e) { 
+
+	console.log(e);
+
 	gamepadHandler(e, true); 
 }, false);
+
+
+
 addEventListener("gamepaddisconnected", function(e) { 
+	
+	console.log(e);
+	
 	gamepadHandler(e, false); 
+	
 }, false); 
 
-var mousedown = false;
-var mousemove = false;
+var mouse = { down:false,};
 
-addEventListener("mousedown", function(e) { 
-	mousedown = e;
+addEventListener("mousedown", function(e) { 	
+	mouse.down = e;
 }, false); 
 addEventListener("mouseup", function(e) { 
-	
-	mousedown = false;
-	
+	mouse.down = false;	
 }, false); 
 addEventListener("mousemove", function(e) { 	
-	mousemove = e;
+
+	var rect = canvas.getBoundingClientRect();
+	mouse.x =  e.clientX - rect.left;
+	mouse.y = e.clientY - rect.top; 
+	
 }, false); 
-
-var gameReady = false;
-
-var init = function () {	
-	if(hero.ready && gameReady == false){
-
-		/* if(hero.start()){
-			
-			gameReady = true;
-			//monster.startRand();
-			//lameHero.startRand();
-		} */
-	}
-};
-
-
-
 
 
 var gamepads = [];
 function gamepadHandler(event, connecting) {
   
+	//console.log( "connecting" );
+  
   var gamepad = event.gamepad;
   // Note:
-  //gamepad = navigator.getGamepads()[gamepad.index];
-
+	gamepad = navigator.getGamepads()[gamepad.index];
+	
+	//console.log( gamepad );
+	
 	if (connecting) {	
 		gamepads[gamepad.index] = gamepad;
 	} else {
@@ -593,13 +611,18 @@ function gamepadHandler(event, connecting) {
 
 
 
-
-
-
+//----------------------------------------------------------------------------------------------------------------------------------
 // Update game objects
 var update = function (modifier) {
 	
-	Game.update(modifier);
+	//
+	/* if( Game.ready ){	
+		Game.update(modifier);
+	}else{
+		
+	} */
+
+	
 	
 	
 	/* for( var i = 0; i < gamepads.length; i++){
@@ -617,7 +640,6 @@ var update = function (modifier) {
 		}	
 	} */
 	
-	
 };
 
 // Draw everything
@@ -627,7 +649,7 @@ var render = function () {
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	
 	ctx.save();
-	Game.draw();	
+	//Game.draw();	
 	ctx.restore();
 	
 	/* var ellipse = calculateEllipse( canvas.width/2, canvas.height /2 , canvas.width/4, canvas.height/4, 0, 36);
@@ -655,33 +677,31 @@ var render = function () {
 
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------
+
 // The main game loop
 var main = function () {
-	
-	//setup the game / check assets
-	init();
 	
 	var now = Date.now();
 	var delta = now - then;
 
 	update(delta / 1000);
-	render();
-
+	world.update(delta / 1000);
+	
+	render();	
+	world.draw();
+	
 	then = now;
 
 	// Request to do this again ASAP
 	requestAnimationFrame(main);
 };
+//----------------------------------------------------------------------------------------------------------------------------------	
 	
 	
-	
-	var PlayerCollisions = {
-		
+	var PlayerCollisions = {	
 		player:dynamicCollide,
-		
 	};
-	
-	
 	var heroProps = {
 		
 		name:"hero",
@@ -720,39 +740,115 @@ var main = function () {
 		
 	};
 	
-	//create background
-	var bgImage = new map( "images/map1.png" );	
-	
-	//models
-	var worldShotgun = new worldProp( shotgunWorldProps );
-	var worldShotgun2 = new worldProp( shotgunWorldProps );
-	var worldPistol = new worldProp( pistolWorldProps );
-	
-	//areas
-	var tankArea = new worldArea( tankAreaProps );
-	var rocketArea = new worldArea( rocketAreaProps );
-	var scoutArea = new worldArea( scoutAreaProps );
-	
-	//walls
-	var topWall = new worldArea( topWallProps );
-	var bottomWall = new worldArea( bottomWallProps );
-	
-	var leftWall = new worldArea( leftWallProps );
-	var rightWall = new worldArea( rightWallProps );
-	
-	//players
-	var hero = new player( heroProps );
-	var hero2 = new player( hero2Props );
+	var mainMenuProps = {
+		image:"images/menuBack.jpg",
+		music:"",
+		items:[
+			{	
+				text:"Single Player",
+				textColor:"white",
+				boxColor:"black",
+				fontSize:20,
+				font: "Arial",
+				y:200,
+				height:50,
+				width:150,
+				bearing:0,
+				collisions:{
+					mouseObject:function( mouse ){
+												
+						if( mouse.down != false ){
+							
+							if( mouse.clickDelay.ready()  == false) return false;
+							
+							var bgImage = new worldProp( bgProps );							
+							var worldShotgun = new worldProp( shotgunWorldProps );
+							
+							//models
+							var worldShotgun = new worldProp( shotgunWorldProps );
+							var worldShotgun2 = new worldProp( shotgunWorldProps );
+							var worldPistol = new worldProp( pistolWorldProps );
+							
+							var tankArea = new worldArea( tankAreaProps );
+							var rocketArea = new worldArea( rocketAreaProps );
+							var scoutArea = new worldArea( scoutAreaProps );
+							
+							//walls
+							var topWall = new worldArea( topWallProps );
+							var bottomWall = new worldArea( bottomWallProps );
+							var leftWall = new worldArea( leftWallProps );
+							var rightWall = new worldArea( rightWallProps );
+							
+							//players
+							var hero = new player( heroProps );
+							//var hero2 = new player( hero2Props );
 
-	//camera
-	var camera = new camera([hero, hero2]);
-	
-	var gameMasterProps = {
-		camera:camera,
-		children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall, hero, hero2 ], 
+							//camera
+							var camera = new Camera([hero]); // , hero2]);
+							
+							var gameMasterProps = {
+								camera:camera,
+								children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall, hero,  ], //hero2
+							};
+							
+							var Game = new gameMaster( gameMasterProps ); //level Not the World!! 
+							
+							world.children.push( Game );
+							world.mode = world.children.indexOf( Game );
+							
+						}
+					},
+				}
+			},
+			{
+				text:"Multi-Player",
+				textColor:"white",
+				boxColor:"black",
+				fontSize:20,
+				font: "Arial",
+				y:300,
+				height:50,
+				width:150,
+				bearing:0,
+			},
+			{
+				text:"Sound",
+				textColor:"white",
+				boxColor:"black",
+				fontSize:20,
+				font: "Arial",
+				x:200,
+				y:0,
+				height:50,
+				width:150,
+				bearing:0,
+			},
+			{
+				text:"Credits",
+				textColor:"white",
+				boxColor:"black",
+				fontSize:20,
+				font: "Arial",
+				x:0,
+				y:0,
+				height:50,
+				width:150,
+				bearing:0,
+			},
+		],
+		
 	};
-	var Game = new gameMaster( gameMasterProps );
 
+	var mainMenu = new MenuScreen( mainMenuProps  );
+	
+	var worldMasterProps = {
+		debugging:true,
+		mode : 0,
+		children : [ mainMenu ],
+	};
+	
+	var world = new WorldMaster( worldMasterProps );
+	
 	// Cross-browser support for requestAnimationFrame
 	var w = window;
 	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;

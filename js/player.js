@@ -1,7 +1,7 @@
 function player(properties){
 	
 	//Default Values....
-	this.type = "player";
+
 		
 	for (var attrname in properties) { 
 		this[attrname] = properties[attrname]; 
@@ -13,7 +13,7 @@ function player(properties){
 	}
 	this.collisions.parent = this;	
 	
-
+	this.type = "player";
 	this.phaseClass(); //setup the class
 	
 	this.switchWeaponDelay = new deBounce( 0.2 );
@@ -38,25 +38,30 @@ function player(properties){
 	//check if animation has changed
 	this.frameChange = false; //probably use this?
 			
-	this.ready = false;
-	this.ready2 = false;
-	
-	
+
 	var obj = {
 		player:this,
 	};
 	this.image.onload = function(){	
-		obj.image = this;
 		(function(that){
 			
-			that.player.ready = true;	
+			if( that.player.ready == false){
+				that.player.ready = true;
+			}else{
+				that.player.ready = false;			
+			};	
+			
 		})(obj);
 	};
 	this.image2.onload = function(){	
-		obj.image = this;
 		(function(that){
 			
-			that.player.ready2 = true;	
+			if( that.player.ready == false){
+				that.player.ready = true;
+			}else{
+				that.player.ready = false;			
+			};	
+			
 		})(obj);
 	};
 	
@@ -109,7 +114,8 @@ function player(properties){
 
 player.prototype = {
 	update:function(modifier){
-		
+		if(  this.ready == undefined || this.ready == false ) return false;
+				
 		this.switchWeaponDelay.update( modifier );
 		
 		var time = modifier;
@@ -128,26 +134,34 @@ player.prototype = {
 		var angle = 0;			
 		
 		this.travel = this.speed * modifier;
+		
+		
 
-		if (this.controls.left in keysDown) { // Player holding left
+		
+		this.controllerIndex = 0;
+		var pad = navigator.getGamepads()[ this.controllerIndex ];
+		
+		
+		
+		if (this.controls.left in keysDown ||  pad.buttons[14].pressed ) { // Player holding left
 			angle += 270;
 			moving++;	
 		}
-		if (this.controls.down in keysDown) { // Player holding down
+		if (this.controls.down in keysDown ||  pad.buttons[13].pressed) { // Player holding down
 			angle += 180; //pointing down!			
 			moving++;
 		}
-		if (this.controls.right in keysDown) { // Player holding right
+		if (this.controls.right in keysDown ||  pad.buttons[15].pressed) { // Player holding right
 			angle += 90; //pointing down!	
 			moving++;
 		}
-		if (this.controls.up in keysDown) { // Player holding up
+		if (this.controls.up in keysDown ||  pad.buttons[12].pressed) { // Player holding up
 			angle -= 360; //keep pointing up!	
 			moving++;
 		}	
 
 		
-		if( this.controls.next in keysDown){	
+		if( this.controls.next in keysDown || pad.buttons[5].pressed){	
 			
 			if( this.switchWeaponDelay.ready() ){
 				console.log( this.inventory, this.currentTool );
@@ -159,7 +173,7 @@ player.prototype = {
 				
 			}		
 		}
-		if( this.controls.prev in keysDown){
+		if( this.controls.prev in keysDown || pad.buttons[4].pressed){
 			
 			if( this.switchWeaponDelay.ready() ){
 				if( this.currentTool > 0 ){			
@@ -170,14 +184,12 @@ player.prototype = {
 			}
 		}
 		
-		if (this.controls.shoot in keysDown) { // space /	shoot!			
+		if (this.controls.shoot in keysDown || pad.buttons[7].pressed) { // space /	shoot!			
 			if ( currentTool !== undefined) { 
 				currentTool.fire(time);
 			}
 		}		
-		
-		// vars above are currentTool, angle and moving.....
-		
+			
 		if(moving > 0){ //USER IS MOVING
 			
 			//fixes the angle issue....
@@ -209,6 +221,21 @@ player.prototype = {
 			this.state["1"] = "standing";
 			
 		}	
+		
+		angle = getBearing( pad.axes[0], pad.axes[1] );
+		var dist = Math.sqrt( pad.axes[0]*pad.axes[0] + pad.axes[1]*pad.axes[1]     );		
+		
+		//deadZones.
+		if( dist > 1) dist = 1;
+		if( dist >= 0.25) {
+			this.bearing["0"] = angle;	
+			this.bearing["1"] = angle;
+			this.move( this.travel * dist, angle);
+			
+			this.state["0"] = "walking";
+			this.state["1"] = "walking";
+		};
+		
 		
 		//weapon always overwrites standing....
 		if( currentTool !== undefined ) this.state["1"] = currentTool.animation;
@@ -294,51 +321,50 @@ player.prototype = {
 		};	
 	},
 	draw:function(){
-		if (this.ready && this.ready2) {
-
-			this.gotoPlayer();
-							
-			//save the layer at the player.
-			ctx.save();	
 		
-			//layer 0
-		
-			
-			ctx.rotate( this.bearing["0"] * Math.PI/180);
-			ctx.drawImage( this.image2,
-				this.frameX * (this.currentFrames.layer0.y - 1),
-				this.frameY * (this.currentFrames.layer0.x - 1), 
-				this.frameX, 
-				this.frameY, 
-				-this.width/2 * this.scale, 
-				-this.height/2 * this.scale, 
-				this.width * this.scale, 
-				this.height * this.scale
-			);
+		if(  this.ready == undefined || this.ready == false ) return false;
 
-			ctx.restore();
+		this.gotoPlayer();
 						
-			//  LAYER 1
-			ctx.rotate( this.bearing["1"] * Math.PI/180);
-			ctx.drawImage(this.image, 
-				this.frameX * (this.currentFrames.layer1.y - 1), 
-				this.frameY * (this.currentFrames.layer1.x - 1), 
-				this.frameX,
-				this.frameY, 
-				-this.width/2 * this.scale, 
-				-this.height/2 * this.scale,
-				this.width * this.scale,
-				this.height * this.scale
-			);
-						
-			// tool acs as another layer
-			if ( this.inventory[ this.currentTool ] !== undefined) { 
-				this.inventory[ this.currentTool ].draw();
-			}
-			
-			//back to original canvas layer			
-			ctx.restore();		
+		//save the layer at the player.
+		ctx.save();	
+	
+		//layer 0
+		ctx.rotate( this.bearing["0"] * Math.PI/180);
+		ctx.drawImage( this.image2,
+			this.frameX * (this.currentFrames.layer0.y - 1),
+			this.frameY * (this.currentFrames.layer0.x - 1), 
+			this.frameX, 
+			this.frameY, 
+			-this.width/2 * this.scale, 
+			-this.height/2 * this.scale, 
+			this.width * this.scale, 
+			this.height * this.scale
+		);
+
+		ctx.restore();
+					
+		//  LAYER 1
+		ctx.rotate( this.bearing["1"] * Math.PI/180);
+		ctx.drawImage(this.image, 
+			this.frameX * (this.currentFrames.layer1.y - 1), 
+			this.frameY * (this.currentFrames.layer1.x - 1), 
+			this.frameX,
+			this.frameY, 
+			-this.width/2 * this.scale, 
+			-this.height/2 * this.scale,
+			this.width * this.scale,
+			this.height * this.scale
+		);
+					
+		// tool acs as another layer
+		if ( this.inventory[ this.currentTool ] !== undefined) { 
+			this.inventory[ this.currentTool ].draw();
 		}
+		
+		//back to original canvas layer			
+		ctx.restore();		
+		
 	},
 	collide,
 	gotoPlayer:function(){
