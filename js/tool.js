@@ -1,15 +1,13 @@
 function tool(props){
-	
 	this.type = "tool";
 	
 	for (var attrname in props) { 
 		this[attrname] = props[attrname]; 
 	}
-
-	this.weaponDelay = new deBounce( 1 / this.useRate );
 	
 	this.image = new Image();
 	this.image.src = props.gunHeldSrc;
+	
 	var obj = this;
 	this.image.onload = function(){	
 		(function(that){	
@@ -18,11 +16,10 @@ function tool(props){
 	};
 	
 	
-	this.parent;
+	//this.parent;
 	
-	this.x = 0;
-	this.y = 0; 
-
+	this.weaponDelay = new deBounce( 1 / this.useRate );
+	this.startSound.play();
 }
 
 tool.prototype = {
@@ -70,7 +67,9 @@ tool.prototype = {
 		if(  this.ready == undefined || this.ready == false ) return false;
 		
 		if(  this.weaponDelay.ready() ){
-						
+			
+			this.fireSound.play();
+			
 			var gap = this.bulletSpread / ( this.bulletsPerFire +1 ); // =1		
 			var incriment= 0;	
 			var orignalDirection = this.bearing;		
@@ -111,7 +110,7 @@ function Bullet(tool){
 		parent:this,
 		player: function( player ){
 				this.parent.live = false;
-				player.damage();
+				player.takeDamage( 10 );
 		},
 	};
 	
@@ -148,3 +147,7 @@ Bullet.prototype = {
 	},
 	collide,
 }
+
+
+
+

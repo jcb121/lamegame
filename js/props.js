@@ -64,20 +64,22 @@
 		height:canvas.height/8,
 		bearing:0,
 		collisions:{
-			player:function( player, hitInfo, time ){		
-
+			player:function( player, hitInfo, time ){
+				
 				player.phaseClass();
-				
-				
-				
+								
 				if( 0 <= player.key && player.key <= 90 ){			
 					player.key += 0.5 * time;
 				}
 				else if( 90 <= player.key && player.key <=  270 ){
+					
 					player.key -= 0.5 * time;		
+				
 				}else if( 270 <= player.key && player.key <=  360 ){				
+					
 					player.key += 0.5 * time;
 					if( player.key < 0) player.key -= 360; 
+				
 				}
 			},
 		},

@@ -1,8 +1,5 @@
 function player(properties){
-	
-	//Default Values....
-
-		
+			
 	for (var attrname in properties) { 
 		this[attrname] = properties[attrname]; 
 	}	
@@ -18,8 +15,8 @@ function player(properties){
 	
 	this.switchWeaponDelay = new deBounce( 0.2 );
 	
+	this.bearing = [];
 	this.startRand(); //start the player
-	this.hitboxCords = [];
 	
 	this.currentTool = 0; //index
 	if( this.inventory == undefined ){
@@ -37,78 +34,32 @@ function player(properties){
 	
 	//check if animation has changed
 	this.frameChange = false; //probably use this?
-			
-
-	var obj = {
-		player:this,
-	};
-	this.image.onload = function(){	
-		(function(that){
-			
-			if( that.player.ready == false){
-				that.player.ready = true;
-			}else{
-				that.player.ready = false;			
-			};	
-			
-		})(obj);
-	};
-	this.image2.onload = function(){	
-		(function(that){
-			
-			if( that.player.ready == false){
-				that.player.ready = true;
-			}else{
-				that.player.ready = false;			
-			};	
-			
-		})(obj);
-	};
 	
-	//directions of each layer
-	this.bearing = {
-		"0":0,
-		"1":0,
-		"2":0,
+	var imgLoad = function(){
+		if( this.ready == false){
+				this.ready = true;
+			}else{
+				this.ready = false;			
+			};	
 	};
+
+	this.image.onload = imgLoad.bind(this)();
+	this.image2.onload = imgLoad.bind(this)();
+		
+
 	//what the player is doing
-	this.state = {
-		"0":"standing",
-		"1":"standing",
-		"2":"standing",
-	}
+	this.state = {}
 	//the current timer of the frame
-	this.layerFrameTime = {
-		"0":0,
-		"1":0,
-		"2":0,
-	};
+	this.layerFrameTime = {	};
 	//the current frame of animation
-	this.layerCurrentFrame = {
-		"0":0,
-		"1":0,
-		"2":0,
-	};
+	this.layerCurrentFrame = {	};
 	//how long each frame lasts
-	this.layerEachFrameTime = {
-		"0":0,
-		"1":0,
-		"2":0,
-	};
+	this.layerEachFrameTime = {};
 	//holds the xy cords on the sprite sheet
 	this.currentFrames = {
-		layer0:{
-			x:0,
-			y:0
-		},
-		layer1:{
-			x:0,
-			y:0
-		},
-		layer2:{
-			x:0,
-			y:0
-		},
+		layer0:{},
+		layer1:{},
+		layer2:{},
 	}
 };
 
@@ -122,54 +73,116 @@ player.prototype = {
 		var currentTool = this.inventory[ this.currentTool ];
 		var hands = 0;
 		
-		this.travel = 0;
-		
 		if ( currentTool !== undefined) { 			
 			currentTool.update(time);
 			modifier = modifier / currentTool.weight;
 			hands = currentTool.hands;
 		}
-				
-		var moving = 0;
-		var angle = 0;			
-		
-		this.travel = this.speed * modifier;
+			
+		this.travel = this.calcSpeed * modifier;
 		
 		
+		var pad = navigator.getGamepads();	
+		pad = pad[ this.controllerIndex ];
+		
+		if( pad != undefined ){ //has controller
+		
+			if( pad.buttons[5].pressed){	
+			
+				if( this.switchWeaponDelay.ready() ){
 
+					if( this.currentTool < this.inventory.length -1 ){	
+						this.currentTool++;	
+					}else{	
+						this.currentTool = 0;
+					}
+					
+					if( this.inventory[this.currentTool] != undefined ) this.inventory[ this.currentTool ].startSound.play();
+					
+				}		
+			}
+			if( pad.buttons[4].pressed){
+				
+				if( this.switchWeaponDelay.ready() ){
+					if( this.currentTool > 0 ){			
+						this.currentTool--;
+					}else{		
+						this.currentTool = this.inventory.length -1;
+					}
+					
+					if( this.inventory[this.currentTool] != undefined ) this.inventory[ this.currentTool ].startSound.play();
+						
+				}
+			}
+			
+			if ( pad.buttons[7].pressed) { // space /	shoot!			
+				if ( currentTool !== undefined) { 
+					currentTool.fire(time);
+				}
+			}
+
+			var angle = getBearing( pad.axes[0], pad.axes[1] );
+			var dist = Math.sqrt( pad.axes[0]*pad.axes[0] + pad.axes[1]*pad.axes[1]     );		
+			
+			var lookAngle = getBearing( pad.axes[2], pad.axes[3] );
+			var lookDist = Math.sqrt( pad.axes[2]*pad.axes[2] + pad.axes[3]*pad.axes[3]     );		
+					
+			//deadZones.
+			if( dist > 1) dist = 1;
+			if( dist >= 0.25) {
+				
+				this.bearing["0"] = angle;	
+				this.bearing["1"] = lookAngle;
+				this.move( this.travel * dist, angle);
+				
+				this.state["0"] = "walking";
+				this.state["1"] = "walking";
+			}
+			else{
+				this.state["0"] = "standing";
+				this.state["1"] = "standing";
+			};
+			
+			if( lookDist > 1) lookDist = 1;
+			if( lookDist >= 0.25) {
+				this.bearing["1"] = lookAngle;
+			};
+		}else{	//no controller;
+			//Pause the game! //Sort this out!
+			this.state["0"] = "standing";
+			this.state["1"] = "standing";
+		}
 		
-		this.controllerIndex = 0;
-		
-		console.log( navigator.getGamepads() );
-		var pad = navigator.getGamepads()[ this.controllerIndex ];		
-		
-		if (this.controls.left in keysDown ||  pad.buttons[14].pressed ) { // Player holding left
+		/* 
+		var moving = 0;
+		if (this.controls.left in keysDown ) { // Player holding left
 			angle += 270;
 			moving++;	
 		}
-		if (this.controls.down in keysDown ||  pad.buttons[13].pressed) { // Player holding down
+		if (this.controls.down in keysDown ) { // Player holding down
 			angle += 180; //pointing down!			
 			moving++;
 		}
-		if (this.controls.right in keysDown ||  pad.buttons[15].pressed) { // Player holding right
+		if (this.controls.right in keysDown ) { // Player holding right
 			angle += 90; //pointing down!	
 			moving++;
 		}
-		if (this.controls.up in keysDown ||  pad.buttons[12].pressed) { // Player holding up
+		if (this.controls.up in keysDown ) { // Player holding up
 			angle -= 360; //keep pointing up!	
 			moving++;
-		}	
+		}	 
 
-		
 		if( this.controls.next in keysDown || pad.buttons[5].pressed){	
 			
 			if( this.switchWeaponDelay.ready() ){
-				console.log( this.inventory, this.currentTool );
+
 				if( this.currentTool < this.inventory.length -1 ){	
 					this.currentTool++;	
 				}else{	
 					this.currentTool = 0;
 				}
+				
+				this.inventory[ this.currentTool ].startSound.play();
 				
 			}		
 		}
@@ -180,7 +193,9 @@ player.prototype = {
 					this.currentTool--;
 				}else{		
 					this.currentTool = this.inventory.length -1;
-				}				
+				}
+				
+				this.inventory[ this.currentTool ].startSound.play();				
 			}
 		}
 		
@@ -215,31 +230,15 @@ player.prototype = {
 			this.state["0"] = "walking";
 			this.state["1"] = "walking";
 			
-		}else{ //USER IS STANDING....
+		}
+		else{ //USER IS STANDING....
 			
 			this.state["0"] = "standing";
 			this.state["1"] = "standing";
 			
-		}	
+		}	 */
 		
-		angle = getBearing( pad.axes[0], pad.axes[1] );
-		var dist = Math.sqrt( pad.axes[0]*pad.axes[0] + pad.axes[1]*pad.axes[1]     );		
-		
-		//deadZones.
-		if( dist > 1) dist = 1;
-		if( dist >= 0.25) {
-			this.bearing["0"] = angle;	
-			this.bearing["1"] = angle;
-			this.move( this.travel * dist, angle);
-			
-			this.state["0"] = "walking";
-			this.state["1"] = "walking";
-		};
-		
-		
-		//weapon always overwrites standing....
 		if( currentTool !== undefined ) this.state["1"] = currentTool.animation;
-		
 					
 		var hitBoxes = this.animations[ this.state[1] ].hitBoxes;
 		this.hitboxCords = [ //array of all cords Cord being one square.....
@@ -252,8 +251,7 @@ player.prototype = {
 				height: hitBoxes[0].height * this.scale,  
 				bearing: this.bearing["1"],
 				
-			},
-			{
+			},{
 				x:this.x,
 				y:this.y,
 				xOffset: hitBoxes[1].x * this.scale,
@@ -262,8 +260,7 @@ player.prototype = {
 				height: hitBoxes[1].height * this.scale, 
 				bearing: this.bearing["1"],
 				
-			},
-			{
+			},{
 				x:this.x,
 				y:this.y,
 				xOffset: hitBoxes[2].x * this.scale,
@@ -278,6 +275,7 @@ player.prototype = {
 		this.chooseFrame( time );
 	},
 	chooseFrame:function(time){
+		
 		//syncronize two later animations!
 		if( this.state[0] == this.state[1]){
 			this.layerFrameTime[1] =  this.layerFrameTime[0];
@@ -289,6 +287,8 @@ player.prototype = {
 		time *=1000;
 		for (i = 0; i < 2; i++) { 
 			
+			if( this.layerFrameTime[i] == undefined ) this.layerFrameTime[i]  = 0;
+			if( this.layerCurrentFrame[i] == undefined ) this.layerCurrentFrame[i] =0;
 			
 			var animation = this.animations[ this.state[i] ];
 		
@@ -305,39 +305,42 @@ player.prototype = {
 					this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
 					this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
 					
-				}else{	
+
+					
+				}
+				else{	
 				
 					this.layerCurrentFrame[i]++;				
 					
 					this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
 					this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
-						
+					
+	
 				}
-			}else{
-					this.layerFrameTime[i] += time;
 			}
-			
-
+			else{
+					this.layerFrameTime[i] += time;				
+			}	
 		};	
 	},
 	draw:function(){
 		
-		if(  this.ready == undefined || this.ready == false ) return false;
+		if(  this.ready == undefined || this.ready == false ||  this.currentFrames.layer0.y == undefined ) return false;
 
 		this.gotoPlayer();
 						
 		//save the layer at the player.
 		ctx.save();	
-	
-		//layer 0
+		
+		//layer 0 //ERROR HERE
 		ctx.rotate( this.bearing["0"] * Math.PI/180);
 		ctx.drawImage( this.image2,
-			this.frameX * (this.currentFrames.layer0.y - 1),
-			this.frameY * (this.currentFrames.layer0.x - 1), 
+			this.frameX * (this.currentFrames.layer0.y - 1), //is minus 1
+			this.frameY * (this.currentFrames.layer0.x - 1), //is minus 1
 			this.frameX, 
 			this.frameY, 
-			-this.width/2 * this.scale, 
-			-this.height/2 * this.scale, 
+			0-this.width/2 * this.scale, 
+			0-this.height/2 * this.scale,
 			this.width * this.scale, 
 			this.height * this.scale
 		);
@@ -347,14 +350,15 @@ player.prototype = {
 		//  LAYER 1
 		ctx.rotate( this.bearing["1"] * Math.PI/180);
 		ctx.drawImage(this.image, 
-			this.frameX * (this.currentFrames.layer1.y - 1), 
-			this.frameY * (this.currentFrames.layer1.x - 1), 
-			this.frameX,
-			this.frameY, 
-			-this.width/2 * this.scale, 
-			-this.height/2 * this.scale,
-			this.width * this.scale,
-			this.height * this.scale
+			
+			this.frameX * (this.currentFrames.layer1.y - 1),  //start cliiping at		
+			this.frameY * (this.currentFrames.layer1.x - 1),  //start cliiping at
+			this.frameX, //frameSize
+			this.frameY,  //frameSize
+			0 -this.width/2 * this.scale, //x 
+			0 -this.height/2 * this.scale, //y
+			this.width * this.scale,  //output size
+			this.height * this.scale //output size
 		);
 					
 		// tool acs as another layer
@@ -377,6 +381,166 @@ player.prototype = {
 	startRand,
 	calculateBalance,
 	phaseClass,
-	damage,
+	takeDamage,
 	move,
 }
+
+function AiPlayer(props){
+	
+	this.type  = "AiPlayer";
+	this.scale = 1;
+	
+	for (var attrname in props) { 
+		this[attrname] = props[attrname]; 
+	}
+		
+	if( props.collisions != undefined){	
+		this.collisions = {};
+		for (var attrname in props.collisions) { 
+			this.collisions[attrname] = props.collisions[attrname]; 
+		}
+		this.collisions.parent = this;		
+	}
+	
+	this.image = new Image();
+	this.image.src = props.spriteTorseSrc;
+	var imgLoad = function(){
+		this.ready = true;
+	};
+	this.image.onload = imgLoad.bind(this)();
+	
+	this.currentFrames = {};
+	
+	this.startRand();	//sets X Y Bearing
+	this.attackDelay = new deBounce(1);	
+	if( this.startSound != undefined) this.startSound.play();
+}
+
+AiPlayer.prototype = {
+	update:function(modifier){
+		
+		this.tracking = this.parent.players;
+		
+		this.attackDelay.update( modifier );
+		
+		this.travel = this.calcSpeed * modifier;
+		
+		var changeX = this.x - this.tracking[0].x  // ERROR HERE. TIS FINE.
+		var changeY = this.y - this.tracking[0].y
+		
+		var bearing = getBearing( changeX, changeY);
+		bearing += 180;
+		if( bearing >= 360) bearing -= 360;
+		
+		this.bearing = bearing;
+
+		this.move( this.travel, this.bearing );
+		
+		this.state = "walking";
+		
+		var hitBoxes = this.animations[ this.state ].hitBoxes;
+		
+		this.hitboxCords = [ //array of all cords Cord being one square.....
+			{
+				x:this.x,
+				y:this.y,
+				xOffset: hitBoxes[0].x * this.scale,
+				yOffset: hitBoxes[0].y * this.scale,
+				width: hitBoxes[0].width * this.scale,
+				height: hitBoxes[0].height * this.scale,  
+				bearing: this.bearing,
+				
+			},
+			{
+				x:this.x,
+				y:this.y,
+				xOffset: hitBoxes[1].x * this.scale,
+				yOffset: hitBoxes[1].y * this.scale,
+				width: hitBoxes[1].width * this.scale,
+				height: hitBoxes[1].height * this.scale, 
+				bearing: this.bearing,
+				
+			},
+			{
+				x:this.x,
+				y:this.y,
+				xOffset: hitBoxes[2].x * this.scale,
+				yOffset: hitBoxes[2].y * this.scale,
+				width: hitBoxes[2].width * this.scale,
+				height: hitBoxes[2].height * this.scale, 
+				bearing: this.bearing,
+				
+			},
+		];
+		
+		this.chooseFrame( modifier );
+	},
+	draw:function(){
+				
+		if(  this.ready == undefined || this.ready == false ||  this.currentFrames.y == undefined ) return false;
+				
+		this.gotoPlayer();
+		ctx.save();	
+
+		ctx.rotate( this.bearing * Math.PI/180);
+				
+		ctx.drawImage(this.image, 	
+			this.frameX * (this.currentFrames.y - 1),  //start cliiping at		
+			this.frameY * (this.currentFrames.x - 1),  //start cliiping at
+			this.frameX, //frameSize
+			this.frameY,  //frameSize
+			0 -this.width/2 * this.scale, //x 
+			0 -this.height/2 * this.scale, //y
+			this.width * this.scale,  //output size
+			this.height * this.scale //output size
+		);
+			
+		ctx.restore();
+			ctx.restore();
+		
+	},
+	chooseFrame:function(time){
+
+		time *=1000;
+					
+		if( this.layerFrameTime == undefined ) this.layerFrameTime  = 0;
+		if( this.layerCurrentFrame == undefined ) this.layerCurrentFrame =0;
+			
+		var animation = this.animations[ this.state ]; //walking normally!
+					
+			this.layerEachFrameTime = animation["layerTime"];	
+			if (this.layerFrameTime > this.layerEachFrameTime ){
+				
+				this.layerFrameTime = 0; 
+				
+				if(this.layerCurrentFrame > animation["layer"].length -2){
+					
+					this.layerCurrentFrame = 0;				
+					this.currentFrames.x = animation["layer"][ this.layerCurrentFrame ][1]
+					this.currentFrames.y = animation["layer"][ this.layerCurrentFrame ][0]
+					
+				}
+				else{	
+				
+					this.layerCurrentFrame++;				
+										
+					this.currentFrames.x = animation["layer"][ this.layerCurrentFrame ][1]
+					this.currentFrames.y = animation["layer"][ this.layerCurrentFrame ][0]
+				
+				}
+			}
+			else{				
+					this.layerFrameTime += time;
+			}
+	},
+	startRand,
+	gotoPlayer:function(){
+		ctx.save();
+		ctx.translate(this.x, this.y);
+	},
+	collide,
+	move,
+	takeDamage,
+	phaseClass,
+	calculateBalance,
+};

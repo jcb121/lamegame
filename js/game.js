@@ -14,35 +14,18 @@ function WorldMaster ( props ){
 	
 };
 
-
-
 WorldMaster.prototype = {
 	update:function( modifier ){ //does nothing really!
+		
 		this.children[ this.mode ].update( modifier );	
 		
-		var gamepads = navigator.getGamepads();
-		
-		for (var i = 0; i < gamepads.length; ++i){	
-			
-			var pad = gamepads[i];			
-			
-			if( pad != undefined){
-				
-				//console.log( pad.axes[1] );
-				
-				/* for( var j = 0; j < pad.buttons.length; j++){
-					
-					if( pad.buttons[j].pressed){
-						console.log( pad, j);
-					}
-				} */
-			};
-			
-			
-		}
 	},
 	draw:function(){
-		this.children[ this.mode ].draw();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.save();
+		this.children[ this.mode ].draw();	
+		ctx.restore();
 	},
 	checkReady:function(){
 		var checks = 0;
@@ -59,43 +42,132 @@ WorldMaster.prototype = {
 	},
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------
+
 function gameMaster( props ){
 	
 	this.ready = false;
 	
 	this.children = [];
+	this.players = [];
 	this.debugging = false;
 	
-	for (var attrname in props) { this[attrname] = props[attrname]; };
+	for (var attrname in props) { 
+		this[attrname] = props[attrname]; 
+	};
 		
-	this.addObject = function(object){		
-		this.children.push(object);
-	};	
-	
 	for( var i = 0; i < this.children.length; i++ ){
 		this.children[i].parent = this;
 	};
+	this.camera.parent = this;
 	
-	this.update = function(modifier){		
+	this.pads = navigator.getGamepads();
+	
+	if( this.pads != undefined){
 			
-		//update the camera DUH!
+		for( var i = 0; i < this.pads.length; i++){
+			
+			if( this.pads[i] == undefined) continue;
+			
+			var hero = new player(heroProps);
+			hero.controllerIndex = this.pads[i].index;
+			this.children.push( hero );
+			this.players.push( hero );
+			hero.parent = this;
+			
+		}
+	}	
+};
+
+gameMaster.prototype = {
+	
+	checkReady:function(){
+		var checks = 0;
+		for( var i = 0; i < this.children.length; i++){
+			if( this.children[i].ready == undefined || this.children[i].ready == false){
+				checks++
+			};
+		}
+		if( checks == 0 ){
+			return true;
+		}else{
+			return false;
+		}
+	},
+	addObject:function(object){
+		this.children.push(object);
+	},
+	update: function(modifier){		
+		
+		var pads = navigator.getGamepads();
+		var count = [];
+		for( var i = 0; i < pads.length; i++){	
+			if( pads[i] != undefined ){
+				count.push( pads[i] );
+			};
+		}; 
+	
+		if( this.players.length < count.length ){ //more cons then people....
+			
+			var takenCons = [];
+			
+			for( var i = 0; i < this.players.length; i++){
+				takenCons.push( this.players[i].controllerIndex  );
+			}
+			
+			//loop through VALID controllers...
+			for( var i = 0; i < count.length; i++ ){
+								
+				if( takenCons.indexOf( count[i].index) == -1 ){
+											
+					if( count[i].buttons[0].pressed ){
+
+						var hero = new player(heroProps);
+						hero.controllerIndex = count[i].index;
+						this.children.push( hero );
+						this.players.push( hero );
+						hero.parent = this;
+	
+					}
+				}
+			}
+		}
+		
+		
+		if( backgroundSound.ready ){
+			if( this.bgLoop == undefined) this.bgLoop = new deBounce(64, true);
+			this.bgLoop.update( modifier );
+			
+			if( this.bgLoop.ready() ){
+				backgroundSound.play();
+			}
+		}
+		
 		this.camera.update();
 		
 		//update the children....
 		for(var i = 0; i < this.children.length; i++) {	
 			
 			if( this.children[i].live == false){				
+				
+				
+				if( this.children[i].type == "player"){
+				
+					var temp = this.players.indexOf( this.children[i] );
+					this.players.splice( temp, 1 );
+					
+				};
+
 				this.children.splice(i,1);
+				
 				continue;
 			}; 
-	
 			this.children[i].update(modifier);	
 		};
 		
 		getCollisions( this.children, modifier);
-	};
-	
-	this.draw = function(){		
+	},
+	draw:function(){		
 		
 		if( this.camera.split ){
 						
@@ -151,27 +223,12 @@ function gameMaster( props ){
 				}
 			}	
 		}	
-	};
-};
-
-gameMaster.prototype = {
-	
-	checkReady:function(){
-		var checks = 0;
-		for( var i = 0; i < this.children.length; i++){
-			if( this.children[i].ready == undefined || this.children[i].ready == false){
-				checks++
-			};
-		}
-		if( checks == 0 ){
-			return true;
-		}else{
-			return false;
-		}
 	},
 	
 	
 };
+
+//----------------------------------------------------------------------------------------------------------------------------------
 
 function Camera(following){
 	
@@ -362,6 +419,8 @@ function Camera(following){
 	
 	this.update = function(){
 		
+		this.following = this.parent.players;
+		
 		this.split = false;
 				
 		//following 1p? move the camera to 1p
@@ -539,143 +598,48 @@ function Camera(following){
 	};
 }
 
-
-// Handle keyboard controls
-var keysDown = {};
-
-addEventListener("keydown", function (e) {
-	keysDown[e.keyCode] = true;
-}, false);
-addEventListener("keyup", function (e) {
-	delete keysDown[e.keyCode];
-}, false);
-
-
-
-
-
-
-//works for new controllers only....
-addEventListener("gamepadconnected", function(e) { 
-
-	console.log(e);
-
-	gamepadHandler(e, true); 
-}, false);
-
-
-
-addEventListener("gamepaddisconnected", function(e) { 
-	
-	console.log(e);
-	
-	gamepadHandler(e, false); 
-	
-}, false); 
-
-var mouse = { down:false,};
-
-addEventListener("mousedown", function(e) { 	
-	mouse.down = e;
-}, false); 
-addEventListener("mouseup", function(e) { 
-	mouse.down = false;	
-}, false); 
-addEventListener("mousemove", function(e) { 	
-
-	var rect = canvas.getBoundingClientRect();
-	mouse.x =  e.clientX - rect.left;
-	mouse.y = e.clientY - rect.top; 
-	
-}, false); 
-
-
-var gamepads = [];
-function gamepadHandler(event, connecting) {
-  
-	//console.log( "connecting" );
-  
-  var gamepad = event.gamepad;
-  // Note:
-	gamepad = navigator.getGamepads()[gamepad.index];
-	
-	//console.log( gamepad );
-	
-	if (connecting) {	
-		gamepads[gamepad.index] = gamepad;
-	} else {
-		gamepads.splice( gamepad.index, 1);
-	}
-}
-
-
-
-
-//----------------------------------------------------------------------------------------------------------------------------------
-// Update game objects
-var update = function (modifier) {
-	
-	//
-	/* if( Game.ready ){	
-		Game.update(modifier);
-	}else{
-		
-	} */
-
-	
-	
-	
-	/* for( var i = 0; i < gamepads.length; i++){
-		
-		////console.log( gamepads[i] );
-		
-		for( var j = 0; j < gamepads[i].buttons.length; j++ ){	
-			if( gamepads[i].buttons[j].pressed ){
-				////console.log( "button" + j, gamepads[i].buttons[j] );
-			};
-		}
-		
-		for( var j = 0; j < gamepads[i].axes.length; j++ ){
-			////console.log( "button" + j, gamepads[i].axes[j] );
-		}	
-	} */
-	
+function ZombieSpawner(){
 };
 
-// Draw everything
-var render = function () {
-	
-	ctx.setTransform(1, 0, 0, 1, 0, 0);
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-	
-	ctx.save();
-	//Game.draw();	
-	ctx.restore();
-	
-	/* var ellipse = calculateEllipse( canvas.width/2, canvas.height /2 , canvas.width/4, canvas.height/4, 0, 36);
-
-	ctx.beginPath();
-	ctx.lineWidth="1";
-	ctx.strokeStyle="blue"; // blue path	
-													
-	for( var h = 0; h < ellipse.length; h++){							
-		if( h == 0){
-			
-			ctx.moveTo( ellipse[h].x, ellipse[h].y );
-			
-		}else if( h == ellipse.length -1){
-			
-			ctx.lineTo( ellipse[h].x, ellipse[h].y);
+ZombieSpawner.prototype = {
+	update:function(modifier){
+		
+		if( this.zombieDelay == undefined){
+			this.incriment = 1;
+			this.zombieDelay = new deBounce(10);
+		};
+		
+		
+		this.zombieDelay.update(modifier);
+		if( this.zombieDelay.ready() ){
+			for( var i = 0; i < this.incriment; i++){
 				
-		}else{
-				ctx.lineTo( ellipse[h].x, ellipse[h].y);
-		}		
-	}
-			
-	ctx.closePath();
-	ctx.stroke(); // Draw it  */
-
+				if( this.parent.children.length > 50){	
+					console.log("limit");
+					continue;	
+				} ;
+				
+				//zombieProps.parent = this.parent;
+				
+				var zomb = new AiPlayer( zombieProps )
+				
+				zomb.parent = this.parent;
+				zomb.key = Math.floor(Math.random() * 360);
+				zomb.phaseClass();
+				
+				console.log( zomb.calcSpeed );
+				
+				this.parent.children.push( zomb );
+				
+			};
+			this.incriment++;
+		};
+	},
+	draw:function(){},
+	
 };
+
+
 
 //----------------------------------------------------------------------------------------------------------------------------------
 
@@ -685,29 +649,26 @@ var main = function () {
 	var now = Date.now();
 	var delta = now - then;
 
-	update(delta / 1000);
 	world.update(delta / 1000);
-	
-	render();	
 	world.draw();
 	
 	then = now;
-
-	// Request to do this again ASAP
+	
 	requestAnimationFrame(main);
 };
+
 //----------------------------------------------------------------------------------------------------------------------------------	
 	
 	
 	var PlayerCollisions = {	
 		player:dynamicCollide,
+		AiPlayer:dynamicCollide,
+		bullet:function(){
+			
+		},
 	};
 	var heroProps = {
-		
-		name:"hero",
 		solid:true,
-		ai:false,
-		style:"topDown",
 		spriteTorseSrc:"images/bkspr01.png",
 		spriteLegsSrc:"images/bkspr01-legs.png",
 		frameX:128, //used for sprite clipping
@@ -717,27 +678,34 @@ var main = function () {
 		width:64,  //
 		health:128,
 		animations:heroAnimations,
-		controls:heroControls,
 		collisions:PlayerCollisions,
 	};
-	var hero2Props = {
-		
-		name:"hero2",
+	
+	var zombieProps = {
 		solid:true,
-		ai:false,
-		style:"topDown",
 		spriteTorseSrc:"images/torsoRed.png",
-		spriteLegsSrc:"images/bkspr01-legs.png",
 		frameX:128,
 		frameY:128,
-		speed:150,
+		speed:50,
 		height:64,
 		width:64,
 		health:128,
-		animations:heroAnimations,
-		controls:hero2Controls,
-		collisions:PlayerCollisions,
-		
+		startSound:zombieSpawnSound,
+		deathSound:zombieDyingSound,
+		animations:zombieAnimations,
+		collisions:{
+			bullet:function(bullet){
+				bulletHitBodySound.play();
+				bullet.live = false;
+				this.parent.takeDamage( 20 );
+			},
+			player:function( player ){
+				if( this.parent.attackDelay.ready() ){
+					zombieBiteSound.play();
+				}
+			},
+			AiPlayer:dynamicCollide,
+		},
 	};
 	
 	var mainMenuProps = {
@@ -745,7 +713,7 @@ var main = function () {
 		music:"",
 		items:[
 			{	
-				text:"Single Player",
+				text:"START",
 				textColor:"white",
 				boxColor:"black",
 				fontSize:20,
@@ -755,61 +723,13 @@ var main = function () {
 				width:150,
 				bearing:0,
 				collisions:{
-					mouseObject:function( mouse ){
-												
+					mouseObject:function( mouse ){							
 						if( mouse.down != false ){
-							
 							if( mouse.clickDelay.ready()  == false) return false;
-							
-							var bgImage = new worldProp( bgProps );							
-							var worldShotgun = new worldProp( shotgunWorldProps );
-							
-							//models
-							var worldShotgun = new worldProp( shotgunWorldProps );
-							var worldShotgun2 = new worldProp( shotgunWorldProps );
-							var worldPistol = new worldProp( pistolWorldProps );
-							
-							var tankArea = new worldArea( tankAreaProps );
-							var rocketArea = new worldArea( rocketAreaProps );
-							var scoutArea = new worldArea( scoutAreaProps );
-							
-							//walls
-							var topWall = new worldArea( topWallProps );
-							var bottomWall = new worldArea( bottomWallProps );
-							var leftWall = new worldArea( leftWallProps );
-							var rightWall = new worldArea( rightWallProps );
-							
-							//players
-							var hero = new player( heroProps );
-							//var hero2 = new player( hero2Props );
-
-							//camera
-							var camera = new Camera([hero]); // , hero2]);
-							
-							var gameMasterProps = {
-								camera:camera,
-								children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall, hero,  ], //hero2
-							};
-							
-							var Game = new gameMaster( gameMasterProps ); //level Not the World!! 
-							
-							world.children.push( Game );
-							world.mode = world.children.indexOf( Game );
-							
+							startGame();
 						}
 					},
 				}
-			},
-			{
-				text:"Multi-Player",
-				textColor:"white",
-				boxColor:"black",
-				fontSize:20,
-				font: "Arial",
-				y:300,
-				height:50,
-				width:150,
-				bearing:0,
 			},
 			{
 				text:"Sound",
@@ -838,21 +758,22 @@ var main = function () {
 		],
 		
 	};
-
 	var mainMenu = new MenuScreen( mainMenuProps  );
-	
+		
 	var worldMasterProps = {
 		debugging:true,
 		mode : 0,
 		children : [ mainMenu ],
 	};
-	
 	var world = new WorldMaster( worldMasterProps );
 	
 	// Cross-browser support for requestAnimationFrame
 	var w = window;
 	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+	
 
 	// Let's play this game!
 	var then = Date.now();
 	main();
+		
+	

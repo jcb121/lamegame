@@ -3,6 +3,10 @@ var pistol1handedProps = {
 	animation:"oneHanded",
 	name:"Pistol 1 handed",
 	gunHeldSrc:"images/pistol.png",
+	
+	fireSound: pistolSound,
+	startSound: pistolCockSound ,
+	
 	xOffset:10, //in use
 	yOffset:-30, //in use
 	width:3, //in use
@@ -13,20 +17,22 @@ var pistol1handedProps = {
 	weight:1.2, //in use
 	useRate: 5,  //in use	
 	
-	accuracy:10, //in degrees.
+	accuracy:15, //in degrees.
 	
 	bulletsPerFire:1, //spread in degrees.
 	bulletSpread:1,
-	bulletSpeed:10,
-	bulletSize:2,
+	bulletSpeed:1024,
+	bulletSize:3,
 };
 
 var pistol2handedProps = {
 	
-	
 	animation:"twoHanded",
 	name:"Pistol 2 handed",
-		
+	
+	fireSound: pistolSound,
+	startSound: pistolCockSound ,
+	
 	gunHeldSrc:"images/pistol.png",
 	useRate:6,
 	xOffset:-1,
@@ -43,7 +49,7 @@ var pistol2handedProps = {
 	bulletSpread:1,
 	bulletSpeed:1024,	
 	bulletsPerFire:1,
-	bulletSize:2,
+	bulletSize:3,
 	
 	
 };
@@ -52,6 +58,9 @@ var shotGunProps = {
 	
 	animation:"twoHandedB",
 	name:"Shotgun",
+	
+	fireSound: shotGunSound,
+	startSound: shotgunCockSound ,
 	
 	gunHeldSrc:"images/pistol.png",
 	xOffset:3,

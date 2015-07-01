@@ -1,26 +1,69 @@
-// Create the canvas
-var vCanvas = document.createElement("canvas");
-var vCtx = vCanvas.getContext("2d");
-vCanvas.width = 1000;
-vCanvas.height = 700;
 
-var canvas = document.createElement("canvas");
-var ctx = canvas.getContext("2d");
-canvas.width = 1000;
-canvas.height = 700;
-
-document.getElementById("lameGame").appendChild(canvas);
-
+	function startGame( props ){
+		
+		var bgImage = new worldProp( bgProps );							
+		var worldShotgun = new worldProp( shotgunWorldProps );
+		
+		//models
+		var worldShotgun = new worldProp( shotgunWorldProps );
+		var worldShotgun2 = new worldProp( shotgunWorldProps );
+		var worldPistol = new worldProp( pistolWorldProps );
+		
+		var tankArea = new worldArea( tankAreaProps );
+		var rocketArea = new worldArea( rocketAreaProps );
+		var scoutArea = new worldArea( scoutAreaProps );
+		
+		//walls
+		var topWall = new worldArea( topWallProps );
+		var bottomWall = new worldArea( bottomWallProps );
+		var leftWall = new worldArea( leftWallProps );
+		var rightWall = new worldArea( rightWallProps );
+		
+		//players
+		//var hero = new player( heroProps ); //ditch!
+		//var hero2 = new player( hero2Props );
+		
+		//zombieProps.tracking = [ hero ];
+		
+		//spawns Zombies! 
+		var zombieSpawner = new ZombieSpawner();
+		
+		//camera
+		var camera = new Camera();
+		
+		var gameMasterProps = {
+			camera:camera,
+			children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall, zombieSpawner   ], //hero2   
+		};
+		
+		var Game = new gameMaster( gameMasterProps ); //level Not the World!! 
+		
+		world.children.push( Game );
+		world.mode = world.children.indexOf( Game );
+		
+	}	
+	
+	
+	
 
 var startRand = function(){	
+	
 	if( this.x == undefined){
-		this.x = (Math.random() * (canvas.width - this.width/2));
+		this.x = (Math.random() * (	2000 - this.width/2));
 	};
 	if( this.y == undefined){
-		this.y = (Math.random() * (canvas.height - this.height/2));	
+		this.y = (Math.random() * (	1000 - this.height/2));	
 	};
+	
 	if( this.bearing == undefined){
 		this.bearing = Math.random() * 360;
+	}else if( typeof this.bearing == "object"){
+		
+		if( this.bearing[0] == undefined ){
+			
+			this.bearing[0] = Math.random() * 360;
+			this.bearing[1] = this.bearing[0];
+		}	
 	};
 }; 
 
@@ -31,41 +74,28 @@ var decAccuracy = function( amount ){};
 
 //---------------------------------------------------------
 var heal = function( amount, toughness ){};
-var damage = function( amount, toughness ){};
 
-/* var incSpeed = function(amount){
-	if( amount == undefined){
-		this.speed += 0.1;
-	} else{
-		this.speed += amount;
-	};
-};
-var decSpeed = function(amount){
-	if( amount == undefined){
-		this.speed -= 0.1;
-	} else{
-		this.speed -= amount;
-	};
-};
-
-var incToughness = function(amount){
+var takeDamage = function( amount, toughness ){	
+	if( toughness != undefined ){	
+		this.health -= amount * toughness;		
+	}else{
+		if( this.toughness != undefined ){		
+			this.health -= amount * this.toughness;
+		}else{			
+			this.health -= amount;	
+		}
+		
+	}
 	
-	if( amount == undefined){
-		this.toughness -= 0.1;
-	} else{
-		this.toughness -= amount;
+	if( this.health < 0){
+		
+		this.live = false;
+		
+		if( this.deathSound != undefined) this.deathSound.play() ;
+		
 	};
 	
 };
-var decToughness = function(amount){
-	
-	if( amount == undefined){
-		this.toughness -= 0.1;
-	} else{
-		this.toughness -= amount;
-	};
-	
-}; */
 
 var calculateBalance = function( key, mod){
 	
@@ -85,38 +115,23 @@ var phaseClass = function(){
 	var b = this.calculateBalance( this.key + 180);
 		
 	this.scale = a ;
-	this.speed = b * 200;
+	this.calcSpeed = b * this.speed;	//should be speed really!!! 
 
 	this.toughness = b;
 	
-	if( this.speed < 50) this.speed = 50;
+	if( this.calcSpeed < 50) this.calcSpeed = 50;
 	if( this.scale < 0.5) this.scale = 0.5;
 	if( this.toughness < 0.25) this.toughness = 0.25;
 		
 }
 
 
-var incSize = function( amount ){
-	
-	if( amount == undefined){
-		this.scale += 0.001;
-	} else{
-		this.scale += amount;
-	};
-	
-};
-var decSize = function( amount ){
-	if( amount == undefined){
-		this.scale -= 0.001;
-	} else{
-		this.scale -= amount;
-	};
-};
-
-	//works nice!
-	var deBounce = function( time ){
+	//works nice!  //initial delay is an issue.....
+	var deBounce = function( time, initialDelay ){
 		
-		this.state = false;
+		this.state = initialDelay;
+		if( initialDelay == undefined) state = false;
+		
 		this.delay = time;
 		this.currentTime = 0;
 		
@@ -125,7 +140,7 @@ var decSize = function( amount ){
 			
 			this.currentTime += time;
 			
-			if( this.currentTime > this.delay ){	
+			if( this.currentTime > this.delay || this.state == true ){	
 				this.state = true;
 			}else{	
 				this.state = false;
@@ -170,11 +185,26 @@ var decSize = function( amount ){
 		if( this.parent.collisionActive){
 			this.parent.collisionActive = false;
 		}else{
-								
-				this.parent.x += hitInfo.overlapV.x /2;
-				this.parent.y += hitInfo.overlapV.y /2;	
-				object.x -= hitInfo.overlapV.x /2;
-				object.y -= hitInfo.overlapV.y /2;
+				
+				//console.log( hitInfo ); 
+				
+				if( hitInfo.flip){
+				
+					this.parent.x -= hitInfo.overlapV.x /2;
+					this.parent.y -= hitInfo.overlapV.y /2;	
+					object.x += hitInfo.overlapV.x /2;
+					object.y += hitInfo.overlapV.y /2;
+					
+				}else{
+					
+					this.parent.x += hitInfo.overlapV.x /2;
+					this.parent.y += hitInfo.overlapV.y /2;	
+					object.x -= hitInfo.overlapV.x /2;
+					object.y -= hitInfo.overlapV.y /2;
+					
+				}
+				
+				
 				this.collisionActive = false;
 				object.collisionActive = true;		
 		}	
@@ -237,6 +267,7 @@ var decSize = function( amount ){
 					for( var u = 0; u < targetCords.length; u++ ){
 						
 						var touch = touching( objectCords[y], targetCords[u] ); 						
+						
 						if( touch[0] )	collisions.push( [ objects[q] , objects[j] , touch[1]  ] );	
 						
 					}
@@ -246,13 +277,18 @@ var decSize = function( amount ){
 		
 		
 		for (var i = 0; i < collisions.length; i++) {	
+			
 			if( typeof collisions[i][0].collide == "function"){
 				collisions[i][0].collide( collisions[i][1], collisions[i][2], modifier );
+				//a ( b )
 			}
 			
 			if( typeof collisions[i][1].collide == "function"){
+				collisions[i][2].flip = true;
 				collisions[i][1].collide( collisions[i][0], collisions[i][2], modifier );
+				//b ( a )
 			}
+			
 		};
 		
 		return collisions;
@@ -281,7 +317,6 @@ var decSize = function( amount ){
 		
 		var angle = Math.atan( changeY / changeX) * 180 / Math.PI;
 		
-		
 			if( changeX > 0 && changeY > 0 ){
 					
 				angle += 90;
@@ -304,7 +339,16 @@ var decSize = function( amount ){
 	};
 	
 	
-	var getAngle = function(changeX, changeY){};
+	
+	function playSound(buffer) {
+
+		var source = context.createBufferSource();
+		source.buffer = buffer;
+		source.connect(	context.destination	);
+		source.start(0);
+				
+	}
+	
 	var getTravel = function(changeX, changeY){};
 	var drawCircle = function(x, y, size, color){
 		ctx.beginPath();

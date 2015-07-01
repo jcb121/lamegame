@@ -70,7 +70,7 @@ worldProp.prototype = {
 		ctx.restore();
 	},
 	collide,
-	startRand,
+	startRand:startRand,
 		
 };
 
