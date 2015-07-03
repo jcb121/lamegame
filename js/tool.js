@@ -94,6 +94,7 @@ tool.prototype = {
 			}	
 		}
 	},
+	
 };
 
 function Bullet(tool){

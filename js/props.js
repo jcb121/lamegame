@@ -67,7 +67,9 @@
 			player:function( player, hitInfo, time ){
 				
 				player.phaseClass();
-								
+				
+
+				
 				if( 0 <= player.key && player.key <= 90 ){			
 					player.key += 0.5 * time;
 				}
@@ -80,7 +82,28 @@
 					player.key += 0.5 * time;
 					if( player.key < 0) player.key -= 360; 
 				
-				}
+				}				
+				
+				if( player.inventory[ player.currentTool ] != undefined ){	
+					
+					//lower the delay
+					player.inventory[ player.currentTool ].weaponDelay.delay *= 0.99; 
+					
+					player.inventory[ player.currentTool ].accuracy;
+					player.inventory[ player.currentTool ].bulletSize = 2;
+					player.inventory[ player.currentTool ].bulletSpeed;
+					player.inventory[ player.currentTool ].bulletSpread =1 ;
+					player.inventory[ player.currentTool ].bulletsPerFire = 1;
+					
+					
+					console.log( player.inventory[ player.currentTool ] );
+				
+				};
+				
+				
+				
+				
+				
 			},
 		},
 	};
@@ -140,14 +163,15 @@
 	//World Hit Boxes..........	
 	var wallCollisions = {
 		player:staticCollide,
+		AiPlayer:reflectCollide,
 		bullet:killCollide,
 	}
 	
 	var topWallProps = {
 		x:2560/2,
-		y:-5,
-		height:20,
-		width:2560,
+		y:-250,
+		height:500,
+		width:3560,
 		bearing:0,
 		solid:true,
 		collisions:wallCollisions,
@@ -155,29 +179,29 @@
 	
 	var bottomWallProps = {
 		x:2560/2,
-		y:1398,
-		height:20,
-		width:2560,
+		y:1643,
+		height:500,
+		width:3560,
 		bearing:0,
 		solid:true,
 		collisions:wallCollisions,
 	};
 	
 	var leftWallProps = {
-		x:-5,
+		x:-250,
 		y:1398/2,
 		height:1398,
-		width:20,
+		width:500,
 		bearing:0,
 		solid:true,
 		collisions:wallCollisions,
 	};
 	
 	var rightWallProps = {
-		x:2565,
+		x:2810,
 		y:1398/2,
 		height:1398,
-		width:20,
+		width:500,
 		bearing:0,
 		solid:true,
 		collisions:wallCollisions,

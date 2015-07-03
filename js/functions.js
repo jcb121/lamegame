@@ -19,11 +19,6 @@
 		var leftWall = new worldArea( leftWallProps );
 		var rightWall = new worldArea( rightWallProps );
 		
-		//players
-		//var hero = new player( heroProps ); //ditch!
-		//var hero2 = new player( hero2Props );
-		
-		//zombieProps.tracking = [ hero ];
 		
 		//spawns Zombies! 
 		var zombieSpawner = new ZombieSpawner();
@@ -33,7 +28,7 @@
 		
 		var gameMasterProps = {
 			camera:camera,
-			children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall, zombieSpawner   ], //hero2   
+			children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall,  zombieSpawner  ], //hero2   
 		};
 		
 		var Game = new gameMaster( gameMasterProps ); //level Not the World!! 
@@ -46,84 +41,86 @@
 	
 	
 
-var startRand = function(){	
-	
-	if( this.x == undefined){
-		this.x = (Math.random() * (	2000 - this.width/2));
-	};
-	if( this.y == undefined){
-		this.y = (Math.random() * (	1000 - this.height/2));	
-	};
-	
-	if( this.bearing == undefined){
-		this.bearing = Math.random() * 360;
-	}else if( typeof this.bearing == "object"){
+	var startRand = function(){	
 		
-		if( this.bearing[0] == undefined ){
+		if( this.x == undefined){
+			this.x = (Math.random() * (	2000 - this.width/2));
+		};
+		if( this.y == undefined){
+			this.y = (Math.random() * (	1000 - this.height/2));	
+		};
+		
+		if( this.bearing == undefined){
+			this.bearing = Math.random() * 360;
+		}else if( typeof this.bearing == "object"){
 			
-			this.bearing[0] = Math.random() * 360;
-			this.bearing[1] = this.bearing[0];
-		}	
-	};
-}; 
+			if( this.bearing[0] == undefined ){
+				
+				this.bearing[0] = Math.random() * 360;
+				this.bearing[1] = this.bearing[0];
+			}	
+		};
+	}; 
 
-var incAccuracy = function( amount ){};
-var decAccuracy = function( amount ){};
+
 
 //Game hinges
 
 //---------------------------------------------------------
 var heal = function( amount, toughness ){};
 
-var takeDamage = function( amount, toughness ){	
-	if( toughness != undefined ){	
-		this.health -= amount * toughness;		
-	}else{
-		if( this.toughness != undefined ){		
-			this.health -= amount * this.toughness;
-		}else{			
-			this.health -= amount;	
+	var takeDamage = function( amount, toughness ){	
+		if( toughness != undefined ){	
+			this.health -= amount * toughness;		
+		}else{
+			if( this.toughness != undefined ){		
+				this.health -= amount * this.toughness;
+			}else{			
+				this.health -= amount;	
+			}
+			
 		}
 		
-	}
-	
-	if( this.health < 0){
-		
-		this.live = false;
-		
-		if( this.deathSound != undefined) this.deathSound.play() ;
-		
-	};
-	
-};
-
-var calculateBalance = function( key, mod){
-	
-	if( mod == undefined){
-			mod = 1;
+		if( this.health < 0){
+			
+			this.live = false;
+			
+			if( this.deathSound != undefined) this.deathSound.play() ;
+			
 		};
 		
+	};
+
+	//returns  between 0 and 2 :) I It
+	var calculateBalance = function( key, mod){	
+		if( mod == undefined){
+				mod = 1;
+		};	
 		return (Math.sin( key * Math.PI / 180 ) + 1) * mod;   
-	
-}
+	}
 
-var phaseClass = function(){
-	
-	if( this.key == undefined) this.key = 0;			
-
-	var a = this.calculateBalance( this.key);
-	var b = this.calculateBalance( this.key + 180);
+	var phaseClass = function(){
 		
-	this.scale = a ;
-	this.calcSpeed = b * this.speed;	//should be speed really!!! 
+		if( this.key == undefined) this.key = 0;			
 
-	this.toughness = b;
-	
-	if( this.calcSpeed < 50) this.calcSpeed = 50;
-	if( this.scale < 0.5) this.scale = 0.5;
-	if( this.toughness < 0.25) this.toughness = 0.25;
+		var a = this.calculateBalance( this.key);
+		var b = this.calculateBalance( this.key + 180); //could be a mod here?!
+			
+		this.scale = a ;
+		this.calcSpeed = b * this.speed;	//should be speed really!!! 
+
+		this.toughness = b;
 		
-}
+		if( this.calcSpeed < 50) this.calcSpeed = 50;
+		if( this.scale < 0.5) this.scale = 0.5;
+		if( this.toughness < 0.25) this.toughness = 0.25;
+			
+	}
+	
+	var phaseGun = function(){
+		if( this.key == undefined) this.key = 0;		
+		
+	};
 
 
 	//works nice!  //initial delay is an issue.....
@@ -188,7 +185,7 @@ var phaseClass = function(){
 				
 				//console.log( hitInfo ); 
 				
-				if( hitInfo.flip){
+				if( hitInfo.flip ){
 				
 					this.parent.x -= hitInfo.overlapV.x /2;
 					this.parent.y -= hitInfo.overlapV.y /2;	
@@ -208,6 +205,49 @@ var phaseClass = function(){
 				this.collisionActive = false;
 				object.collisionActive = true;		
 		}	
+	};	
+	var reflectCollide = function(object , hitInfo){ //Best used for things that can be pushed!
+						
+				object.x += hitInfo.overlapV.x;
+				object.y += hitInfo.overlapV.y;
+				
+				if( object.bearing > 360) object.bearing - 360;
+				else if ( object.bearing > 0) object.bearing +360;
+				
+				//object.bearing = 360 - object.bearing;
+				
+				if( object.bearing == 0 || object.bearing == 90 || object.bearing == 180 || object.bearing == 270){
+					
+					object.bearing += 180;
+					if( object.bearing > 360) object.bearing -= 360;
+					
+				}else if( 0 < object.bearing && object.bearing < 90){
+					object.bearing = 180 - object.bearing;
+				}else if( 90 < object.bearing && object.bearing < 180){
+					
+					object.bearing = 180 + ( 180 - object.bearing );
+				
+				}else if( 180 < object.bearing && object.bearing < 270){
+					object.bearing = 180 - ( object.bearing -180 );
+				}
+				else if( 270 < object.bearing && object.bearing < 360){
+					object.bearing =  360 - object.bearing  ;
+				}
+				
+				
+		
+				
+				/* if( hitInfo.flip ){
+										
+				}else{
+					
+
+	
+				} */
+				
+				
+
+		
 	};	
 	var staticCollide = function( object , hitInfo ){ //Best used for walls
 		object.x += hitInfo.overlapV.x;

@@ -626,9 +626,7 @@ ZombieSpawner.prototype = {
 				zomb.parent = this.parent;
 				zomb.key = Math.floor(Math.random() * 360);
 				zomb.phaseClass();
-				
-				console.log( zomb.calcSpeed );
-				
+								
 				this.parent.children.push( zomb );
 				
 			};
@@ -670,7 +668,7 @@ var main = function () {
 	var heroProps = {
 		solid:true,
 		spriteTorseSrc:"images/bkspr01.png",
-		spriteLegsSrc:"images/bkspr01-legs.png",
+		spriteLegsSrc:"images/bkspr02-legs.png",
 		frameX:128, //used for sprite clipping
 		frameY:128, //used for sprite clipping
 		speed:128,
@@ -683,13 +681,14 @@ var main = function () {
 	
 	var zombieProps = {
 		solid:true,
-		spriteTorseSrc:"images/torsoRed.png",
+		spriteTorseSrc:"images/zomb.png",
 		frameX:128,
 		frameY:128,
 		speed:50,
 		height:64,
 		width:64,
 		health:128,
+		damage:10,
 		startSound:zombieSpawnSound,
 		deathSound:zombieDyingSound,
 		animations:zombieAnimations,
@@ -701,7 +700,11 @@ var main = function () {
 			},
 			player:function( player ){
 				if( this.parent.attackDelay.ready() ){
+					
 					zombieBiteSound.play();
+					player.takeDamage( this.parent.damage / this.parent.toughness );
+					
+					console.log( this.parent.damage ,  this.parent.toughness );
 				}
 			},
 			AiPlayer:dynamicCollide,
@@ -755,9 +758,34 @@ var main = function () {
 				width:150,
 				bearing:0,
 			},
+			{
+				text:this.playerCount,
+				textColor:"white",
+				boxColor:"black",
+				fontSize:20,
+				font: "Arial",
+				x:250,
+				y:250,
+				height:50,
+				width:150,
+				bearing:0,
+				update:function(){
+					var allPads = navigator.getGamepads();
+					var pads = [];
+					for( var i = 0; i< allPads.length; i++){
+						if(allPads[i] != undefined) pads.push( allPads[i] ); 
+						
+					}
+					this.playerCount = pads.length; 
+					this.text = this.playerCount;
+					//console.log(this);
+					return pads.length;
+				},
+			},
 		],
 		
 	};
+	
 	var mainMenu = new MenuScreen( mainMenuProps  );
 		
 	var worldMasterProps = {

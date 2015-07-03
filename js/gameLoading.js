@@ -41,6 +41,7 @@
 		this.gainNode.connect( context.destination );
 		this.gainNode.gain.value = this.volume;
 	}
+
 	SoundClip.prototype = {
 		play:function(){	
 			
@@ -67,9 +68,7 @@
 	var shotgunCockSound = new SoundClip( { volume:0.5, src:"sounds/Shotgun_cock_movement_BLASTWAVEFX_09296.mp3" } );
 	var pistolCockSound = new SoundClip( { volume:0.5, src:"sounds/Gun_cock_04_SFXBible_ss06662.mp3" } );
 	var backgroundSound = new SoundClip( { volume:0.5, src:"sounds/Musical_beat_and_loop_full_band_hard_rock_groove_BLASTWAVEFX_20928.mp3" } );
-	
-	
-	
+		
 	// Create the canvas
 	var vCanvas = document.createElement("canvas");
 	var vCtx = vCanvas.getContext("2d");
@@ -94,11 +93,11 @@
 	}, false);
 	 addEventListener("gamepadconnected", function(e) { 
 		//gamepadHandler(e, true); 
-		console.log("blip");
+
 	}, false);
 	addEventListener("gamepaddisconnected", function(e) { 		
 		//gamepadHandler(e, false); 
-		console.log("blip");
+
 	}, false); 
 	addEventListener("mousedown", function(e) { 	
 		mouse.down = e;

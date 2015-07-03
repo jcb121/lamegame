@@ -39,6 +39,26 @@ var heroAnimations ={
 		
 	},
 	
+	walkingSide:{
+	
+		layerTime0:160,
+		minTime0:80,
+		importance0:0,
+		layer0:[ [1,4],[2,4] ],
+		
+		layerTime1:160,
+		minTime1:80,
+		importance1:0,
+		layer1:[ [2,1],[1,2],[1,3],[2,3] ],
+		
+		hitBoxes:[
+			{ x:-15, y:0, width:10, height:10 },
+			{ x:-5, y:-10, width:10, height:25 },
+			{ x:5, y:0, width:10, height:10 }
+		],
+		
+	},
+	
 	twoHanded:{
 		
 		hitBoxes:[

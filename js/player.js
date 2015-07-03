@@ -81,7 +81,6 @@ player.prototype = {
 			
 		this.travel = this.calcSpeed * modifier;
 		
-		
 		var pad = navigator.getGamepads();	
 		pad = pad[ this.controllerIndex ];
 		
@@ -113,8 +112,7 @@ player.prototype = {
 					if( this.inventory[this.currentTool] != undefined ) this.inventory[ this.currentTool ].startSound.play();
 						
 				}
-			}
-			
+			}			
 			if ( pad.buttons[7].pressed) { // space /	shoot!			
 				if ( currentTool !== undefined) { 
 					currentTool.fire(time);
@@ -126,29 +124,64 @@ player.prototype = {
 			
 			var lookAngle = getBearing( pad.axes[2], pad.axes[3] );
 			var lookDist = Math.sqrt( pad.axes[2]*pad.axes[2] + pad.axes[3]*pad.axes[3]     );		
-					
+			
+
+			
 			//deadZones.
 			if( dist > 1) dist = 1;
 			if( dist >= 0.25) {
 				
+				// walk direction == angle;
+				
+				this.move( this.travel * dist, angle);  // move and bearing van be separated.....
+
 				this.bearing["0"] = angle;	
 				this.bearing["1"] = lookAngle;
-				this.move( this.travel * dist, angle);
 				
-				this.state["0"] = "walking";
-				this.state["1"] = "walking";
+				if( lookDist > 1) lookDist = 1;
+				if( lookDist >= 0.25) {
+					this.bearing["1"] = lookAngle;
+				}else{
+					this.bearing["1"] = angle; //if no looking, points in movement direction.
+				};
+				
+				if( (this.bearing["1"] +360  - 45 < this.bearing["0"] && this.bearing["1"] +360 + 45 > this.bearing["0"]) ||
+					(this.bearing["1"] - 360  - 45 < this.bearing["0"] && this.bearing["1"] - 360 + 45 > this.bearing["0"]) ||
+					(this.bearing["1"]  + 45 > this.bearing["0"] && this.bearing["1"]  - 45 < this.bearing["0"])){   //walking forwards
+						
+						this.state["0"] = "walking";
+						this.state["1"] = "walking";
+						
+				}
+				else if( (this.bearing["1"] +360 - 90 - 45 > this.bearing["0"] && this.bearing["1"] + 90 + 45 < this.bearing["0"]) ||
+							(this.bearing["1"] - 90 - 45 > this.bearing["0"] && this.bearing["1"] + 90 - 360 + 45 < this.bearing["0"])){ //walking backwards	
+						
+						this.state["0"] = "walking";
+						this.state["1"] = "walking";
+					
+					this.bearing["0"] -= 180;
+				}
+				else if(	(this.bearing["1"] + 45 < this.bearing["0"] && this.bearing["1"] + 90+ 45 > this.bearing["0"]) ||
+							(this.bearing["1"] -360 + 45 < this.bearing["0"] && this.bearing["1"] -360 + 90 + 45 > this.bearing["0"])	){
+						
+						this.state["0"] = "walkingSide";
+						this.state["1"] = "walkingSide";
+						this.bearing["0"] -= 90;
+				}
+				else{
+						
+						this.state["0"] = "walkingSide";
+						this.state["1"] = "walkingSide";
+						this.bearing["0"] += 90;
+				};			
 			}
 			else{
 				this.state["0"] = "standing";
 				this.state["1"] = "standing";
 			};
-			
-			if( lookDist > 1) lookDist = 1;
-			if( lookDist >= 0.25) {
-				this.bearing["1"] = lookAngle;
-			};
-		}else{	//no controller;
-			//Pause the game! //Sort this out!
+						
+		}
+		else{	//no controller;
 			this.state["0"] = "standing";
 			this.state["1"] = "standing";
 		}
@@ -302,21 +335,20 @@ player.prototype = {
 				if(this.layerCurrentFrame[i] > animation["layer"+i].length -2){
 					
 					this.layerCurrentFrame[i] = 0;				
-					this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
-					this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
-					
+					//this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
+					//this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
 
-					
 				}
 				else{	
 				
-					this.layerCurrentFrame[i]++;				
+					this.layerCurrentFrame[i]++;								
 					
-					this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
-					this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
 					
-	
 				}
+				
+				this.currentFrames["layer" + i].x = animation["layer" + i][ this.layerCurrentFrame[i] ][1]
+				this.currentFrames["layer" + i].y = animation["layer" + i][ this.layerCurrentFrame[i] ][0]
+				
 			}
 			else{
 					this.layerFrameTime[i] += time;				
@@ -412,6 +444,7 @@ function AiPlayer(props){
 	this.currentFrames = {};
 	
 	this.startRand();	//sets X Y Bearing
+
 	this.attackDelay = new deBounce(1);	
 	if( this.startSound != undefined) this.startSound.play();
 }
@@ -419,22 +452,47 @@ function AiPlayer(props){
 AiPlayer.prototype = {
 	update:function(modifier){
 		
-		this.tracking = this.parent.players;
-		
 		this.attackDelay.update( modifier );
-		
 		this.travel = this.calcSpeed * modifier;
 		
-		var changeX = this.x - this.tracking[0].x  // ERROR HERE. TIS FINE.
-		var changeY = this.y - this.tracking[0].y
+		this.tracking = this.parent.players;
+		if( this.tracking.length == 0){
+			
+			if( this.turnDelay == undefined) this.turnDelay = new deBounce(1);
+			this.turnDelay.update( modifier );
+			if( this.turnDelay.ready() ){
+				
+				this.bearing += Math.floor(Math.random() * 90);
+				this.bearing -= 45;
+					
+			}
+			
+			
+			
+		}else if( this.tracking.length ==1 ){
 		
-		var bearing = getBearing( changeX, changeY);
-		bearing += 180;
-		if( bearing >= 360) bearing -= 360;
-		
-		this.bearing = bearing;
+			var changeX = this.x - this.tracking[0].x  // ERROR HERE. TIS FINE.
+			var changeY = this.y - this.tracking[0].y
+			
+			var bearing = getBearing( changeX, changeY);
+			bearing += 180;
+			if( bearing >= 360) bearing -= 360;
+			
+			this.bearing = bearing;
 
+			
+			
+		}else{
+			//shit AI for now...
+			this.bearing = Math.floor(Math.random() * 180);
+			
+		}
+		
+		
 		this.move( this.travel, this.bearing );
+		
+		
+		
 		
 		this.state = "walking";
 		
