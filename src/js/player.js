@@ -5,13 +5,15 @@ function player(properties){
 	}	
 	
 	this.collisions = {};
+	
 	for (var attrname in properties.collisions) { 
 		this.collisions[attrname] = properties.collisions[attrname]; 
 	}
 	this.collisions.parent = this;	
 	
 	this.type = "player";
-	this.phaseClass(); //setup the class
+	
+	this.scale = 1; 
 	
 	this.switchWeaponDelay = new deBounce( 0.2 );
 	
@@ -64,6 +66,8 @@ function player(properties){
 };
 
 player.prototype = {
+	
+	
 	update:function(modifier){
 		if(  this.ready == undefined || this.ready == false ) return false;
 				
@@ -79,7 +83,7 @@ player.prototype = {
 			hands = currentTool.hands;
 		}
 			
-		this.travel = this.calcSpeed * modifier;
+		this.travel = this.speed * modifier;
 		
 		var pad = navigator.getGamepads();	
 		pad = pad[ this.controllerIndex ];
@@ -387,8 +391,8 @@ player.prototype = {
 			this.frameY * (this.currentFrames.layer1.x - 1),  //start cliiping at
 			this.frameX, //frameSize
 			this.frameY,  //frameSize
-			0 -this.width/2 * this.scale, //x 
-			0 -this.height/2 * this.scale, //y
+			0-this.width/2 * this.scale, //x 
+			0-this.height/2 * this.scale, //y
 			this.width * this.scale,  //output size
 			this.height * this.scale //output size
 		);
@@ -402,6 +406,24 @@ player.prototype = {
 		ctx.restore();		
 		
 	},
+	hasTool:function( tool ){
+		
+		
+		var hasTool = false;
+		
+		for(  var i = 0; i < this.inventory.length; i++){
+			
+			if( this.inventory[i] != undefined) {
+					
+				if( this.inventory[i].name == tool){
+					hasTool = true;
+				};							
+			};
+		};
+		
+		return hasTool;
+		
+	},
 	collide,
 	gotoPlayer:function(){
 		ctx.save();
@@ -411,194 +433,28 @@ player.prototype = {
 		ctx.fillText( "player.x:" + this.x + " player.y:" + this.y,50,50);	
 	},
 	startRand,
-	calculateBalance,
-	phaseClass,
 	takeDamage,
 	move,
 }
 
-function AiPlayer(props){
-	
-	this.type  = "AiPlayer";
-	this.scale = 1;
-	
-	for (var attrname in props) { 
-		this[attrname] = props[attrname]; 
-	}
-		
-	if( props.collisions != undefined){	
-		this.collisions = {};
-		for (var attrname in props.collisions) { 
-			this.collisions[attrname] = props.collisions[attrname]; 
-		}
-		this.collisions.parent = this;		
-	}
-	
-	this.image = new Image();
-	this.image.src = props.spriteTorseSrc;
-	var imgLoad = function(){
-		this.ready = true;
-	};
-	this.image.onload = imgLoad.bind(this)();
-	
-	this.currentFrames = {};
-	
-	this.startRand();	//sets X Y Bearing
-
-	this.attackDelay = new deBounce(1);	
-	if( this.startSound != undefined) this.startSound.play();
-}
-
-AiPlayer.prototype = {
-	update:function(modifier){
-		
-		this.attackDelay.update( modifier );
-		this.travel = this.calcSpeed * modifier;
-		
-		this.tracking = this.parent.players;
-		if( this.tracking.length == 0){
-			
-			if( this.turnDelay == undefined) this.turnDelay = new deBounce(1);
-			this.turnDelay.update( modifier );
-			if( this.turnDelay.ready() ){
-				
-				this.bearing += Math.floor(Math.random() * 90);
-				this.bearing -= 45;
-					
-			}
-			
-			
-			
-		}else if( this.tracking.length ==1 ){
-		
-			var changeX = this.x - this.tracking[0].x  // ERROR HERE. TIS FINE.
-			var changeY = this.y - this.tracking[0].y
-			
-			var bearing = getBearing( changeX, changeY);
-			bearing += 180;
-			if( bearing >= 360) bearing -= 360;
-			
-			this.bearing = bearing;
-
-			
-			
-		}else{
-			//shit AI for now...
-			this.bearing = Math.floor(Math.random() * 180);
-			
-		}
-		
-		
-		this.move( this.travel, this.bearing );
-		
-		
-		
-		
-		this.state = "walking";
-		
-		var hitBoxes = this.animations[ this.state ].hitBoxes;
-		
-		this.hitboxCords = [ //array of all cords Cord being one square.....
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[0].x * this.scale,
-				yOffset: hitBoxes[0].y * this.scale,
-				width: hitBoxes[0].width * this.scale,
-				height: hitBoxes[0].height * this.scale,  
-				bearing: this.bearing,
-				
-			},
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[1].x * this.scale,
-				yOffset: hitBoxes[1].y * this.scale,
-				width: hitBoxes[1].width * this.scale,
-				height: hitBoxes[1].height * this.scale, 
-				bearing: this.bearing,
-				
-			},
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[2].x * this.scale,
-				yOffset: hitBoxes[2].y * this.scale,
-				width: hitBoxes[2].width * this.scale,
-				height: hitBoxes[2].height * this.scale, 
-				bearing: this.bearing,
-				
-			},
-		];
-		
-		this.chooseFrame( modifier );
-	},
-	draw:function(){
-				
-		if(  this.ready == undefined || this.ready == false ||  this.currentFrames.y == undefined ) return false;
-				
-		this.gotoPlayer();
-		ctx.save();	
-
-		ctx.rotate( this.bearing * Math.PI/180);
-				
-		ctx.drawImage(this.image, 	
-			this.frameX * (this.currentFrames.y - 1),  //start cliiping at		
-			this.frameY * (this.currentFrames.x - 1),  //start cliiping at
-			this.frameX, //frameSize
-			this.frameY,  //frameSize
-			0 -this.width/2 * this.scale, //x 
-			0 -this.height/2 * this.scale, //y
-			this.width * this.scale,  //output size
-			this.height * this.scale //output size
-		);
-			
-		ctx.restore();
-			ctx.restore();
+var PlayerCollisions = {	
+	player:dynamicCollide,
+	AiPlayer:dynamicCollide,
+	bullet:function(){
 		
 	},
-	chooseFrame:function(time){
-
-		time *=1000;
-					
-		if( this.layerFrameTime == undefined ) this.layerFrameTime  = 0;
-		if( this.layerCurrentFrame == undefined ) this.layerCurrentFrame =0;
-			
-		var animation = this.animations[ this.state ]; //walking normally!
-					
-			this.layerEachFrameTime = animation["layerTime"];	
-			if (this.layerFrameTime > this.layerEachFrameTime ){
-				
-				this.layerFrameTime = 0; 
-				
-				if(this.layerCurrentFrame > animation["layer"].length -2){
-					
-					this.layerCurrentFrame = 0;				
-					this.currentFrames.x = animation["layer"][ this.layerCurrentFrame ][1]
-					this.currentFrames.y = animation["layer"][ this.layerCurrentFrame ][0]
-					
-				}
-				else{	
-				
-					this.layerCurrentFrame++;				
-										
-					this.currentFrames.x = animation["layer"][ this.layerCurrentFrame ][1]
-					this.currentFrames.y = animation["layer"][ this.layerCurrentFrame ][0]
-				
-				}
-			}
-			else{				
-					this.layerFrameTime += time;
-			}
-	},
-	startRand,
-	gotoPlayer:function(){
-		ctx.save();
-		ctx.translate(this.x, this.y);
-	},
-	collide,
-	move,
-	takeDamage,
-	phaseClass,
-	calculateBalance,
 };
+
+var heroProps = {
+	solid:true,
+	spriteTorseSrc:"images/bkspr01.png",
+	spriteLegsSrc:"images/bkspr02-legs.png",
+	frameX:128, //used for sprite clipping
+	frameY:128, //used for sprite clipping
+	speed:128,
+	height:64, //
+	width:64,  //
+	health:128,
+	animations:heroAnimations,
+	collisions:PlayerCollisions,
+};	

@@ -8,10 +8,8 @@
 		var worldShotgun = new worldProp( shotgunWorldProps );
 		var worldShotgun2 = new worldProp( shotgunWorldProps );
 		var worldPistol = new worldProp( pistolWorldProps );
+		var worldMachineGun = new worldProp( machineGunWorldProps );
 		
-		var tankArea = new worldArea( tankAreaProps );
-		var rocketArea = new worldArea( rocketAreaProps );
-		var scoutArea = new worldArea( scoutAreaProps );
 		
 		//walls
 		var topWall = new worldArea( topWallProps );
@@ -28,7 +26,7 @@
 		
 		var gameMasterProps = {
 			camera:camera,
-			children:[ bgImage, worldShotgun, worldShotgun2, worldPistol, tankArea,rocketArea, scoutArea, topWall, bottomWall,leftWall, rightWall,  zombieSpawner  ], //hero2   
+			children:[ bgImage, worldShotgun, worldShotgun2, worldMachineGun, worldPistol, topWall, bottomWall,leftWall, rightWall, zombieSpawner ], //hero2   
 		};
 		
 		var Game = new gameMaster( gameMasterProps ); //level Not the World!! 
@@ -38,9 +36,6 @@
 		
 	}	
 	
-	
-	
-
 	var startRand = function(){	
 		
 		if( this.x == undefined){
@@ -62,12 +57,52 @@
 		};
 	}; 
 
+	var shoot = function(){
+		
+		// this. x & this .y... No hit box only needed for bullet fire.
+		this.x = this.parent.x; 
+		this.y = this.parent.y; 
+		this.bearing = this.parent.bearing["1"]; // torso layer
+		var a = this.bulletOffsetX * this.parent.scale;
+		var b = this.bulletOffsetY * this.parent.scale * -1; //this is negative.
+		var toolDistance = Math.sqrt(a*a + b*b);
+		var toolAngle = Math.atan( b / a ) * 180 / Math.PI;
+		var worldToToolAngle = this.bearing + 90 - toolAngle; //fine.
+		worldToToolAngle -= 90;
+		worldToToolAngle *= -1;			
+		var sin = Math.sin( worldToToolAngle * Math.PI / 180  ); //0.874		
+		var cos = Math.cos( worldToToolAngle * Math.PI / 180  ); //0.485
+		var x = cos * toolDistance;
+		var y = sin * toolDistance;
+		this.x += x;
+		this.y -= y; 
+		
+		var gap = this.bulletSpread / ( this.bulletsPerFire +1 ); // =1		
+		var incriment= 0;	
+		var orignalDirection = this.bearing;		
+		
+		this.clipAmmo--;
+		
+		for (i = 0; i < this.bulletsPerFire ; i++) { 	
+			incriment += gap;
+			this.bearing += incriment;
+			this.bearing -= this.bulletSpread;
+			this.bearing += this.bulletSpread / 2; 
+		
+			var rand = Math.floor((Math.random() * this.accuracy) + 1);				
+			this.bearing += rand - this.accuracy/2;
+			
+			var bullet = new Bullet(this);	
+			this.bearing = orignalDirection;
+			
+			this.parent.parent.addObject(bullet);
+		};
+	};
 
 
-//Game hinges
 
 //---------------------------------------------------------
-var heal = function( amount, toughness ){};
+	var heal = function( amount, toughness ){};
 
 	var takeDamage = function( amount, toughness ){	
 		if( toughness != undefined ){	
@@ -91,38 +126,25 @@ var heal = function( amount, toughness ){};
 		
 	};
 
-	//returns  between 0 and 2 :) I It
-	var calculateBalance = function( key, mod){	
-		if( mod == undefined){
-				mod = 1;
-		};	
-		return (Math.sin( key * Math.PI / 180 ) + 1) * mod;   
-	}
-
-	var phaseClass = function(){
+	var checkReady = function( modifier ){
 		
-		if( this.key == undefined) this.key = 0;			
-
-		var a = this.calculateBalance( this.key);
-		var b = this.calculateBalance( this.key + 180); //could be a mod here?!
+		var checks = 0;
+		for( var i = 0; i < this.children.length; i++){
+		
+			if( !this.children[i].ready ){			
 			
-		this.scale = a ;
-		this.calcSpeed = b * this.speed;	//should be speed really!!! 
-
-		this.toughness = b;
-		
-		if( this.calcSpeed < 50) this.calcSpeed = 50;
-		if( this.scale < 0.5) this.scale = 0.5;
-		if( this.toughness < 0.25) this.toughness = 0.25;
-			
-	}
-	
-	var phaseGun = function(){
-		if( this.key == undefined) this.key = 0;		
-		
+				this.children[i].update( modifier );
+				checks++;
+			};
+		};		
+		if( checks == 0 ){
+			this.ready = true;
+		}
+		else{
+			this.ready = false;
+		}
 	};
-
-
+	
 	//works nice!  //initial delay is an issue.....
 	var deBounce = function( time, initialDelay ){
 		
@@ -132,33 +154,28 @@ var heal = function( amount, toughness ){};
 		this.delay = time;
 		this.currentTime = 0;
 		
-		
 		this.update = function( time ){
 			
 			this.currentTime += time;
-			
 			if( this.currentTime > this.delay || this.state == true ){	
 				this.state = true;
 			}else{	
 				this.state = false;
 			}
-			
 		};
 		
 		this.ready = function(){
 			
 			if( this.state ){   //
 				
-				this.state = false;
+				this.state = undefined;
 				this.currentTime = 0;
 				return true;
 				
 			}else{
 					return this.state; //it return false.
 			}
-		};
-		
-		
+		};		
 	}
 	
 	//collide function
@@ -259,20 +276,8 @@ var heal = function( amount, toughness ){};
 	var suicideCollide = function(){
 		this.parent.live = false;
 	}
-	var lacksTool = function( newplayer, tool){	
-
-		var lacksTool = true;
-		for(  var i = 0; i < newplayer.inventory.length; i++){
-			
-			if( newplayer.inventory[i] != undefined) {
-					
-				if( newplayer.inventory[i].name == tool){
-					lacksTool = false;
-				};							
-			};
-		};
-		return lacksTool;
-	}
+	
+	
 	var damageCollide = function( object, hitInfo ){
 		
 		var amount = 10;
@@ -378,75 +383,40 @@ var heal = function( amount, toughness ){};
 		return angle;
 	};
 	
+	var getDistance = function( x, y, x1, y1 ){
+		
+		var a = x - x1;
+		
+		var b = y - y1;
+		
+		var distance = Math.sqrt( a*a + b*b );
+		
+		return distance;
+	};
 	
-	
-	function playSound(buffer) {
+	/*function playSound(buffer) {
 
 		var source = context.createBufferSource();
 		source.buffer = buffer;
 		source.connect(	context.destination	);
 		source.start(0);
 				
-	}
-	
-	var getTravel = function(changeX, changeY){};
-	var drawCircle = function(x, y, size, color){
+	}*/
+		
+	var drawCircle = function(x, y, size, color, percentage){
+		
+		
+		if( typeof percentage == "undefined"){
+			percentage = 2;
+		};
+		
 		ctx.beginPath();
 		ctx.fillStyle = color;
-		ctx.arc( x, y, size/2 , 0, Math.PI*2, true);
+		ctx.arc( x, y, size/2 , 0, Math.PI * percentage, true);
 		ctx.fill();	
 	};
 
-	/* var addToQuadrant = function(x, y, angle){
-		
-		if( 0 < angle && angle < 90){						
-			this.x += x;
-			this.y -= y; 
-		}
-		else if( 90 < angle && angle < 180){
-			this.x += x;
-			this.y -= y;	
-		}
-		else if( 180 < angle && angle < 270){
-			this.x += x;
-			this.y -= y; 		
-		}
-		else if( 270 < angle && angle < 360){
-			this.x += x;
-			this.y -= y; 
-		}
-		
-	} */
-	/* var updateChildren(){
-	};
-	var drawChildren(){
-		/* //draw children
-		for (var i = 0; i < this.children.length; i++) {	
-			this.children[i].draw();	
-		} 
-	}; */
-	/* function rotate(x, y, xm, ym, a) {
-	   
-
-	   var cos = Math.cos,
-			sin = Math.sin,
-
-			a = a * Math.PI / 180, // Convert to radians because that is what
-								   // JavaScript likes
-
-			// Subtract midpoints, so that midpoint is translated to origin
-			// and add it in the end again
-			xr = (x - xm) * cos(a) - (y - ym) * sin(a)   +  xm,
-			yr = (x - xm) * sin(a) + (y - ym) * cos(a)   +  ym;
-			
-			//debugger;
-			
-		return {
-			x:xr,
-			y:yr,
-		};
-		
-	} */
+	
 
 	function calculateEllipse(x, y, a, b, angle, steps) {
 	  if (steps == null)

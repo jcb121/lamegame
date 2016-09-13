@@ -1,0 +1,21 @@
+{
+  "name": "lamegame",
+  "description": "A really lame game I'm making.",
+  "main": "gulpfile.js",
+  "authors": [
+    "jcb121 <jcb.121@hotmail.co.uk>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/jcb121/lamegame",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.1.0"
+  }
+}
