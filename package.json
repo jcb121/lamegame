@@ -17,9 +17,20 @@
   },
   "homepage": "https://github.com/jcb121/lamegame#readme",
   "devDependencies": {
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.0",
     "del": "^2.2.2",
+    "eslint": "^3.7.0",
     "gulp": "^3.9.1",
+    "gulp-ejs": "^2.2.1",
     "main-bower-files": "^2.13.1",
-    "run-sequence": "^1.2.2"
+    "run-sequence": "^1.2.2",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.7.0"
+  },
+  "dependencies": {
+    "ejs": "^2.5.2",
+    "express": "^4.14.0"
   }
 }

@@ -1,20 +1,29 @@
-function MouseObject( props ){
-	this.type = "mouseObject";
+var DeBounce = require('./functions/deBounce');
+function MouseObject(canvas){
+	this.type = 'mouseObject';
 	this.ready = true;
+	this.clickDelay = new DeBounce( 0.2 );
 	
-	this.clickDelay = new deBounce( 0.2 );
-};
+	addEventListener('mousedown', function(e) {
+		this.down = e;
+	}.bind(this)); 
+	addEventListener('mouseup', function() {
+		this.down = false;	
+	}.bind(this));
+	
+	addEventListener('mousemove', function(e) {
+		var rect = canvas.getBoundingClientRect();
+		this.x =  e.clientX - rect.left;
+		this.y = e.clientY - rect.top; 
+	}.bind(this)); 
+	
+}
 
 MouseObject.prototype = {
 	update:function(modifier){
 		
 		this.clickDelay.update( modifier );
-		
-		
-		this.x = mouse.x; //gloval vals
-		this.y = mouse.y; //gloval vals
-		this.down = mouse.down; //gloval vals
-		
+				
 		this.hitboxCords = [ //array of all cords Cord being one square.....
 			{ // x/y needs to be the origin of the object..
 				x: this.x + 5,
@@ -24,31 +33,16 @@ MouseObject.prototype = {
 				width: 10,
 				height: 20,
 				bearing: 0,
-			},
+			}
 		];
-		
 	},
-	draw:function(){
+	draw:function(canvas){
+		var ctx = canvas.getContext('2d');
 		
-		//ctx.beginPath();
-		//ctx.rect(this.x,this.y,10,20);
-		//ctx.stroke();
-		//ctx.fill();
-		
+		ctx.beginPath();
+		ctx.rect(this.x,this.y,10,20);
+		ctx.stroke();
+		ctx.fill();
 	},
 };
-
-var mouse = { down:false,}; 
-
-addEventListener("mousedown", function(e) { 	
-	mouse.down = e;
-}, false); 
-addEventListener("mouseup", function(e) { 
-	mouse.down = false;	
-}, false); 
-
-addEventListener("mousemove", function(e) { 	
-	var rect = canvas.getBoundingClientRect();
-	mouse.x =  e.clientX - rect.left;
-	mouse.y = e.clientY - rect.top; 
-}, false); 
+module.exports = MouseObject;

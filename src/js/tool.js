@@ -1,5 +1,9 @@
+var Bullet = require('./game/bullet');
+var SoundClip = require('./SoundClip');
+var deBounce = require('./functions/deBounce');
+
 function tool(props){
-	this.type = "tool";
+	this.type = 'tool';
 	
 	this.bulletSize = 3; //Defaults
 	this.bulletsPerFire = 1; //Defaults
@@ -38,15 +42,15 @@ tool.prototype = {
 			
 			if( this.reloadDelay.state == false){
 				this.reloadDelay.update( modifier );
-			};
+			}
 		}
 		else{
 			this.checkAssetsLoaded();
 		}		
 	},
-	draw:function(){
-		
+	draw:function(canvas){
 		if( this.ready ){
+			var ctx = canvas.getContext('2d');
 			ctx.drawImage(this.image, this.xOffset, this.yOffset, this.width, this.height );
 		
 			var percentageAmmo;
@@ -95,16 +99,12 @@ tool.prototype = {
 				ctx.arc(0,0,50,0, percentage * Math.PI);
 				ctx.stroke();
 							
-			};
+			}
 			
 			ctx.rotate( 90*Math.PI/180);
 		}
-		else{
-			
-		}		
-		
 	},
-	fire:function( time ){ //fire could be user added.....
+	fire:function(){ //fire could be user added.....
 		
 		if( this.ready ){
 			
@@ -116,7 +116,7 @@ tool.prototype = {
 					if( this.reloadDelay.state == undefined){
 						//play reload
 						this.reloadDelay.state = false;
-					};
+					}
 						
 				
 					if( this.reloadDelay.ready() ){
@@ -127,7 +127,7 @@ tool.prototype = {
 						this.shoot();
 						this.fireSound.play();
 						
-					};		
+					}
 				}
 				else if( this.ammo <= 0){ //needs ammo!
 					//play click?	
@@ -135,78 +135,53 @@ tool.prototype = {
 				else{
 					this.shoot();
 					this.fireSound.play();
-				};
-			};
-		};		
+				}
+			}
+		}
 	},
-	shoot,
-	checkAssetsLoaded:function(){		
+	shoot:function(){
+		// this. x & this .y... No hit box only needed for bullet fire.
+		this.x = this.parent.x; 
+		this.y = this.parent.y; 
+		this.bearing = this.parent.bearing['1']; // torso layer
+		var a = this.bulletOffsetX * this.parent.scale;
+		var b = this.bulletOffsetY * this.parent.scale * -1; //this is negative.
+		var toolDistance = Math.sqrt(a*a + b*b);
+		var toolAngle = Math.atan( b / a ) * 180 / Math.PI;
+		var worldToToolAngle = this.bearing + 90 - toolAngle; //fine.
+		worldToToolAngle -= 90;
+		worldToToolAngle *= -1;
+		var sin = Math.sin( worldToToolAngle * Math.PI / 180  ); //0.874		
+		var cos = Math.cos( worldToToolAngle * Math.PI / 180  ); //0.485
+		var x = cos * toolDistance;
+		var y = sin * toolDistance;
+		this.x += x;
+		this.y -= y; 
+		
+		var gap = this.bulletSpread / ( this.bulletsPerFire +1 ); // =1
+		var incriment= 0;	
+		var orignalDirection = this.bearing;
+		
+		this.clipAmmo--;
+		
+		for (var i = 0; i < this.bulletsPerFire ; i++) { 	
+			incriment += gap;
+			this.bearing += incriment;
+			this.bearing -= this.bulletSpread;
+			this.bearing += this.bulletSpread / 2; 
+		
+			var rand = Math.floor((Math.random() * this.accuracy) + 1);
+			this.bearing += rand - this.accuracy/2;
+			
+			var bullet = new Bullet(this);	
+			this.bearing = orignalDirection;
+			
+			this.parent.parent.addObject(bullet);
+		}
+	},
+	checkAssetsLoaded:function(){
 		if( this.startSound.ready && this.fireSound.ready && this.imageReady ){
 			this.ready = true;
-		};
+		}
 	},
 };
-
-
-function Bullet(tool){
-	
-	//console.log( tool );
-	
-	this.type = "bullet";
-	this.parent = tool;
-	this.x = tool.x;
-	this.y = tool.y;
-	this.bearing = tool.bearing;
-	
-	this.speed = tool.bulletSpeed;
-	
-	this.bulletSize = tool.bulletSize;
-	
-	this.collisions = {
-		parent:this,
-		player: function( player ){
-				this.parent.live = false;
-				player.takeDamage( 10 );
-		},
-	};
-	
-	if(this.bearing < 0){
-		this.bearing += 360;	
-	}
-	else if( this.bearing >= 360){
-		this.bearing -= 360;
-	};
-	
-	
-}
-
-Bullet.prototype = {
-	update:function(modifier){	
-		
-		var travel = this.speed * modifier;
-				
-		this.move( travel, this.bearing );
-						
-		this.hitboxCords = [  
-			{
-				x:this.x ,
-				y:this.y,
-				width: this.bulletSize,
-				height: this.bulletSize,
-				bearing: 0,
-				xOffset: - this.bulletSize/2,
-				yOffset: - this.bulletSize/2,
-			},
-		]; 	
-	},
-	drawCircle,
-	move,
-	draw:function(){	
-		this.drawCircle( this.x, this.y, this.bulletSize, "black");
-	},
-	collide,
-}
-
-
-
-

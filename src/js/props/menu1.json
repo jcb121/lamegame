@@ -1,0 +1,75 @@
+{
+	"image":"images/menuBack.jpg",
+	"music":"",
+	"items":[
+		{	
+			"text":"START",
+			"textColor":"white",
+			"boxColor":"black",
+			"fontSize":20,
+			"font": "Arial",
+			"y":200,
+			"height":50,
+			"width":150,
+			"bearing":0,
+			"collisions":{
+				"mouseObject":function(mouse){
+					if(mouse.down){
+						if( mouse.clickDelay.ready() ){ //error here
+							this.parent.setMode("classic");
+						}
+					}
+				}
+			}
+		},
+		{
+			"text":"Sound",
+			"textColor":"white",
+			"boxColor":"black",
+			"fontSize":20,
+			"font": "Arial",
+			"x":200,
+			"y":0,
+			"height":50,
+			"width":150,
+			"bearing":0,
+		},
+		{
+			"text":"Credits",
+			"textColor":"white",
+			"boxColor":"black",
+			"fontSize":20,
+			"font": "Arial",
+			"x":0,
+			"y":0,
+			"height":50,
+			"width":150,
+			"bearing":0,
+		},
+		{
+			"text":this.playerCount,
+			"textColor":"white",
+			"boxColor":"black",
+			"fontSize":20,
+			"font": "Arial",
+			"x":250,
+			"y":250,
+			"height":50,
+			"width":150,
+			"bearing":0,
+			update:function(){
+				var allPads = navigator.getGamepads();
+				var pads = [];
+				for( var i = 0; i< allPads.length; i++){
+					if(allPads[i] != undefined) pads.push( allPads[i] ); 
+					
+				}
+				this.playerCount = pads.length; 
+				this.text = this.playerCount;
+				//console.log(this);
+				return pads.length;
+			},
+		}
+	],
+	
+}

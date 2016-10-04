@@ -1,22 +1,26 @@
+var Tool = require('./tool');
+var collide = require('./functions/collisions').collide;
+var startRand = require('./functions/startRand');
+
 function worldProp( props ){
 	
-	this.type = "worldProp"; //defaults
+	this.type = 'worldProp'; //defaults
 	var self = this; //defaults
 	this.collectable = false; //defaults
 	this.solid = false; //defaults
 	
 	this.hitboxCords = [];
 	
-	for (var attrname in props) { 
+	for (let attrname in props) { 
 		this[attrname] = props[attrname]; 
-	};		
+	}
 	
 	this.startRand(); //defaults
 	
 	
 	if( props.collisions != undefined){	
 		this.collisions = {};
-		for (var attrname in props.collisions) { 
+		for (let attrname in props.collisions) { 
 			this.collisions[attrname] = props.collisions[attrname]; 
 		}
 		this.collisions.parent = this;		
@@ -31,13 +35,13 @@ function worldProp( props ){
 	};
 	
 	this.spawner = [];
-	if( typeof props.spawns != "undefined" ){
+	if( typeof props.spawns !== 'undefined' ){
 		
 		for( var i = 0; i < props.spawns.length; i++){	
-			this.spawner[i] = new tool( props.spawns[i] );	
-		};		
+			this.spawner[i] = new Tool( props.spawns[i] );	
+		}
 	
-	};
+	}
 	
 }
 
@@ -60,15 +64,16 @@ worldProp.prototype = {
 					
 					},
 				];
-			};
+			}
 		}
 		else{	
 			this.assetLoader( modifier );  //also updates...
-		};		
+		}
 	},
-	draw:function(){
-		
+	draw:function(canvas){
 		if( this.ready){
+			
+			var ctx = canvas.getContext('2d');
 			
 			ctx.save();
 			ctx.translate( this.x, this.y );
@@ -78,12 +83,10 @@ worldProp.prototype = {
 				ctx.drawImage(this.image, this.x, this.y);
 			}else{
 				ctx.drawImage(this.image, 0 -this.width/2, 0 - this.height/2 , this.width, this.height);	
-			};
+			}
 			
 			ctx.restore();
-			
-		}		
-	
+		}
 	},
 	assetLoader:function( modifier ){
 		
@@ -93,12 +96,12 @@ worldProp.prototype = {
 			if( !this.spawner[i].ready ){
 				this.spawner[i].update( modifier );
 				count++;
-			};
-		};
+			}
+		}
 		
 		if( this.imageReady && count == 0 ){
 			this.ready = true;
-		};
+		}
 	},
 	giveToPlayer:function( player ){
 			
@@ -112,67 +115,12 @@ worldProp.prototype = {
 				player.inventory.push( this.spawner[i] );
 				
 				this.live = false;
-			};
+			}
 			
-		};
-		
-		
-	
-		
+		}
 	},
 	collide,
-	startRand:startRand,		
+	startRand,
 };
 
-function worldArea( props ){
-	
-	this.type = "worldArea";
-	
-	for (var attrname in props) { 
-		this[attrname] = props[attrname]; 
-	}
-	
-	this.collisions = {};
-	for (var attrname in props.collisions) { 
-		this.collisions[attrname] = props.collisions[attrname]; 
-	}
-	this.collisions.parent = this;		
-	
-	this.ready = true;
-	this.hitboxCords = [];
-};
-
-worldArea.prototype = {
-	update:function(modifier){		
-		this.hitboxCords = [ //array of all cords Cord being one square.....
-			{ // x/y needs to be the origin of the object..
-				x:this.x,
-				y:this.y,
-				xOffset: - this.width/2,
-				yOffset: - this.height/2,
-				width: this.width,
-				height: this.height,
-				bearing: this.bearing,
-				
-			},
-		];
-	},
-	draw:function(){
-		ctx.save();
-			ctx.translate( this.x, this.y );
-			ctx.rotate( this.bearing * (Math.PI/180) );
-			
-			ctx.beginPath();
-			ctx.rect(  -this.width/2,  - this.height/2 , this.width, this.height  );
-			ctx.closePath();
-			
-			ctx.stroke();
-
-		ctx.restore();
-	},
-	collide,
-};
-
-
-
-
+module.exports = worldProp;

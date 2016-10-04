@@ -1,0 +1,32 @@
+module.exports = {
+	
+	animation:"twoHanded",
+	name:"Pistol 2 handed",
+	
+	fireSound: { volume:1, src: "sounds/9MM_Luger_p08_semi_automatic_single_shot_pistol_BLASTWAVEFX_09388.mp3" },
+	startSound: { volume:0.5, src: "sounds/Gun_cock_04_SFXBible_ss06662.mp3" } ,
+	
+	gunHeldSrc:"images/pistol.png",
+	useRate:6,
+	xOffset:-1,
+	yOffset:-30,
+	width:3,
+	height:15,
+	bulletOffsetX:0,
+	bulletOffsetY:-31,
+	
+	ammo:50,
+	clip: 10,
+	reloadTime: 2,
+	
+	hands:2,
+	weight:2,
+	
+	accuracy:2,
+	bulletSpread:1,
+	bulletSpeed:1024,	
+	bulletsPerFire:1,
+	bulletSize:3,
+	
+	
+};

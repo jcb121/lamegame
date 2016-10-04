@@ -1,0 +1,30 @@
+module.exports = {
+	
+	animation:"twoHandedB",
+	name:"Shotgun",
+	
+	fireSound: { volume:1, src: "sounds/12_gauge_SPAS-12_shotgun_single_shot_close_perspective_05_SFXBible_ss06854.mp3" },
+	startSound: { volume:0.5, src: "sounds/Shotgun_cock_movement_BLASTWAVEFX_09296.mp3" } ,
+	
+	gunHeldSrc:"images/pistol.png",
+	xOffset:3,
+	yOffset:-37,
+	width:5,
+	height:30,
+	bulletOffsetX:5,
+	bulletOffsetY:-37,
+	
+	hands:2,
+	weight:2,
+	useRate:2,
+	
+	ammo:50,
+	clip: 6,
+	reloadTime: 4,
+	
+	accuracy:3, //in degrees.
+	bulletsPerFire:6, //spread in degrees.
+	bulletSpread:10,
+	bulletSpeed:1024,
+	bulletSize:3,
+};
