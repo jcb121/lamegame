@@ -7,19 +7,23 @@ var move = require('../functions/movement').move;
 
 
 function player(properties){
-			
-	for (let attrname in properties) { 
-		this[attrname] = properties[attrname]; 
+	this.type = 'player';
+
+	console.log(properties);
+
+	this.hitbox = new HitBox(TODO);
+
+	for (let attrName in properties) {
+		this[attrName] = properties[attrName];
 	}	
 	
 	this.collisions = {};
-	
-	for (let attrname in properties.collisions) { 
-		this.collisions[attrname] = properties.collisions[attrname]; 
+	for (let attrName in properties.collisions) {
+		this.collisions[attrName] = properties.collisions[attrName];
 	}
 	this.collisions.parent = this;	
 	
-	this.type = 'player';
+
 	
 	this.scale = 1; 
 	
@@ -53,7 +57,6 @@ function player(properties){
 			this.ready = false;			
 		}
 	};
-
 	this.image.onload = imgLoad.bind(this)();
 	this.image2.onload = imgLoad.bind(this)();
 		
@@ -285,37 +288,10 @@ player.prototype = {
 		if( currentTool !== undefined ) this.state['1'] = currentTool.animation;
 					
 		var hitBoxes = this.animations[ this.state[1] ].hitBoxes;
-		this.hitboxCords = [ //array of all cords Cord being one square.....
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[0].x * this.scale,
-				yOffset: hitBoxes[0].y * this.scale,
-				width: hitBoxes[0].width * this.scale,
-				height: hitBoxes[0].height * this.scale,  
-				bearing: this.bearing['1'],
-				
-			},{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[1].x * this.scale,
-				yOffset: hitBoxes[1].y * this.scale,
-				width: hitBoxes[1].width * this.scale,
-				height: hitBoxes[1].height * this.scale, 
-				bearing: this.bearing['1'],
-				
-			},{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[2].x * this.scale,
-				yOffset: hitBoxes[2].y * this.scale,
-				width: hitBoxes[2].width * this.scale,
-				height: hitBoxes[2].height * this.scale, 
-				bearing: this.bearing['1'],
-				
-			},
-		];
-		
+
+		this.hitboxCords = this.hitbox.update(this.x, this.y, this.bearing[1], this.scale, this.state[1]);
+
+
 		this.chooseFrame( time );
 	},
 	chooseFrame:function(time){
@@ -408,7 +384,7 @@ player.prototype = {
 					
 		// tool acs as another layer
 		if ( this.inventory[ this.currentTool ] !== undefined) { 
-			this.inventory[ this.currentTool ].draw();
+			this.inventory[ this.currentTool ].draw(canvas);
 		}
 		
 		//back to original canvas layer			

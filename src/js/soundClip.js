@@ -12,7 +12,6 @@ var DeBounce = require('./functions/debounce');
 function SoundClip( props ){
 	this.audioLoader( props.src );
 	this.volume = props.volume;
-	
 	this.ready = false;
 	
 	this.gainNode = context.createGain();
@@ -26,6 +25,15 @@ function SoundClip( props ){
 }
 
 SoundClip.prototype = {
+	onload:function(callback){
+
+		this.onloadCallback = callback;
+
+		if(this.ready){
+			callback();
+		}
+
+	},
 	update:function( modifier ){
 		
 		if( this.ready ){
@@ -59,16 +67,19 @@ SoundClip.prototype = {
 		
 		var self = this;
 			
-		request.onload = function() {
+		request.onload = function(e) {
+
 			context.decodeAudioData( this.response, function(theBuffer) { 		
-				self.sound = theBuffer;	
+				self.sound = theBuffer;
 				self.ready = true;
-			}, onError);
-					
-			var onError = function( e ){
+				if(typeof self.onloadCallback === 'function'){
+					self.onloadCallback();
+				}
+
+			}, function(e){
 				console.log(e);
-			};
-		} ;	
+			});
+		};
 		request.send();
 	}
 };

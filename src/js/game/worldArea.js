@@ -1,3 +1,4 @@
+var collide = require('../functions/collisions').collide;
 function worldArea( props ){
 	
 	this.type = "worldArea";
@@ -31,7 +32,8 @@ worldArea.prototype = {
 			},
 		];
 	},
-	draw:function(){
+	draw:function(canvas){
+		var ctx = canvas.getContext('2d');
 		ctx.save();
 			ctx.translate( this.x, this.y );
 			ctx.rotate( this.bearing * (Math.PI/180) );
@@ -46,4 +48,6 @@ worldArea.prototype = {
 	},
 	collide,
 };
+
+module.exports = worldArea;
 

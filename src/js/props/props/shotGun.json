@@ -1,0 +1,16 @@
+{
+	"name":"Shotgun",
+	"image":"images/shotgunWorld.png",
+	"width":64,
+	"height":20,
+	"collectible":true,
+	"spawns":[
+		"shotGunProps"
+	],
+	"collisions":{
+		"player":{
+			"command":"giveTo",
+			"value":"player"
+		}
+	}
+}

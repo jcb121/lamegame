@@ -1,7 +1,6 @@
 var checkReady = require('./functions/checkReady');
 var LoadScreen = require('./loadingScreen/loadScreen');
 
-
 class WorldMaster{
 	
 	constructor(props){
@@ -12,7 +11,7 @@ class WorldMaster{
 		this.children = {};
 		this.canvas = props.canvas;
 		
-		this.children[props.mode] = this.modes[props.mode](this.canvas);
+		this.children[props.mode] = new this.modes[props.mode](this.canvas);
 		this.children[props.mode].parent = this;
 		this.mode = props.mode;
 		
@@ -47,7 +46,7 @@ class WorldMaster{
 		ctx.save();
 		
 		if( this.ready ){
-			this.children[ this.mode ].draw(canvas); //draws the main menu....		
+			this.children[ this.mode ].draw(canvas);
 		} 
 		else{
 			this.loadingScreen.draw(canvas);

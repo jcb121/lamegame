@@ -3,7 +3,7 @@ var SoundClip = require('../soundClip');
 var LoadScreen = require('../loadingScreen/loadScreen');
 
 var Player = require('./player');
-var heroProps = require('./player/settings');
+var heroProps = require('./player/player-config');
 
 var getCollisions = require('../functions/getCollisions');
 
@@ -107,17 +107,17 @@ gameMaster.prototype = {
 		}
 	
 	},
-	draw:function(){				
+	draw:function(canvas){
 		if( this.ready ){
-			
+
 			if( this.camera.split ){
 						
 				for(var i = 0; i < this.camera.x.length; i++){
 					
-					this.camera.draw(i); //gives the camera who to draw for
+					this.camera.draw(canvas, i); //gives the camera who to draw for
 					
 					for (var j = 0; j < this.children.length; j++) {
-						this.children[j].draw();	
+						this.children[j].draw(canvas);
 					}
 					
 					this.camera.end(i);
@@ -126,16 +126,18 @@ gameMaster.prototype = {
 			}
 			else{ //draws avg cam!
 				
-				this.camera.draw();
+				this.camera.draw(canvas);
 				
 				for (let i = 0; i < this.children.length; i++) {
-					this.children[i].draw();	
+					this.children[i].draw(canvas);
 				}
 			}
 					
 		} 
 		else{
-			this.loadingScreen.draw();
+			this.loadingScreen.draw(canvas);
 		}	
 	},	
 };
+
+module.exports = gameMaster;

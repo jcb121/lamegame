@@ -4,17 +4,18 @@ function Camera(following){
 	
 	this.following = following;
 	
-	this.x = []; //this is normall the players XY...
+	this.x = []; //this is normaly the players XY...
 	this.y = []; //array for each player....
 	this.playerAngle = 0;
 		
 	//ok....
-	this.draw = function( j ){
+	this.draw = function(canvas, j){
 		
 		var x = canvas.width/2;
 		var y = canvas.height/2;
-				
-		if(arguments.length == 0){
+		var ctx = canvas.getContext('2d');
+
+		if(arguments.length > 1){
 				
 			x -= this.x;
 			y -= this.y;
@@ -31,7 +32,9 @@ function Camera(following){
 		
 	}
 	
-	this.end = function( j ){
+	this.end = function(canvas, j){
+
+		var ctx = canvas.getContext('2d');
 
 		if( j == 0 ){
 			
@@ -365,3 +368,5 @@ function Camera(following){
 				
 	};
 }
+
+module.exports = Camera;

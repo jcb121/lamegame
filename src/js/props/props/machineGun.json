@@ -1,0 +1,15 @@
+{
+	"name":"Machine Gun",
+	"image":"images/M60tcm2246549.png",
+	"width":64,
+	"height":20,
+	"collectible":true,
+	"spawns":[ "machineGun" ],
+	"collisions":{
+
+        "player":{
+          "command":"giveTo",
+          "value":"player"
+        }
+	}
+}

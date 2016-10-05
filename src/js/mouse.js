@@ -4,9 +4,11 @@ function MouseObject(canvas){
 	this.ready = true;
 	this.clickDelay = new DeBounce( 0.2 );
 	
-	addEventListener('mousedown', function(e) {
+	addEventListener('mousedown', function(e){
 		this.down = e;
-	}.bind(this)); 
+		if(typeof this.onClick === "function") this.onClick();
+	}.bind(this));
+
 	addEventListener('mouseup', function() {
 		this.down = false;	
 	}.bind(this));
@@ -20,6 +22,9 @@ function MouseObject(canvas){
 }
 
 MouseObject.prototype = {
+	click(callback){
+		this.onClick = callback;
+	},
 	update:function(modifier){
 		
 		this.clickDelay.update( modifier );

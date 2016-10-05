@@ -1,0 +1,15 @@
+{
+	"name":"Pistol 1 handed",
+	"image":"images/pistolWorld.png",
+	"width":32,
+	"height":32,
+	"bearing":45,
+	"collectible":true,
+	"spawns":[ "pistol1handed", "pistol2handed" ],
+	"collisions":{
+		"player":{
+			"command":"giveTo",
+            "value":"player"
+		}
+	}
+}

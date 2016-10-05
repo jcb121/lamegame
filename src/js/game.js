@@ -16,8 +16,7 @@ vCanvas.height = height;
 /* var SoundClip = require('./soundClip');
 var bulletHitBodySound = new SoundClip( { volume:0.4, src: 'sounds/Bullet-Hit-Body-Flesh 06.mp3' } );
 var zombieBiteSound = new SoundClip( { volume:0.75, src: 'sounds/Goosh_Bite_Demonic_Fienup_001.mp3' } );
-var zombieDyingSound = new SoundClip( { volume:0.1, src: 'sounds/Breath_long_BLASTWAVEFX_17722.mp3' } );
-var zombieSpawnSound = new SoundClip( { volume:0.1, src: 'sounds/Zombie_Growl_Single_Fienup_004.mp3' } ); */
+ */
 	
 var worldMasterProps = {
 	debugging:true,

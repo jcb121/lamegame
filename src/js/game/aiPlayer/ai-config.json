@@ -1,0 +1,33 @@
+{
+	"solid":true,
+	"spriteTorseSrc":"images/zomb.png",
+	"frameX":128,
+	"frameY":128,
+	"speed":50,
+	"height":64,
+	"width":64,
+	"health":128,
+	"damage":10,
+	"startSound":{
+		"src":"sounds/Zombie_Growl_Single_Fienup_004.mp3",
+		"volume":0.1
+	},
+	"deathSound":{
+		"src":"sounds/Breath_long_BLASTWAVEFX_17722.mp3",
+		"volume":0.1
+	},
+	"animations":"zombieAnimations",
+	"collisions":{
+		"bullet":{
+			"action":"takeDamage",
+			"value":"20"
+		},
+		"player":{
+			"action":"giveDamage",
+			"value":"20"
+		},
+		"AiPlayer":{
+			"action":"dynamicCollide"
+		}
+	}
+}

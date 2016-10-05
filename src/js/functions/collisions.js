@@ -1,15 +1,23 @@
 var collide = function( obj, hitInfo, modifier ){
-	if( this.collisions != undefined){
-		if( this.collisions[ obj.type ] != undefined) {
-			if(typeof this.collisions[ obj.type ] === 'object'){
-				for( var i = 0; i <	this.collisions[ obj.type ].length; i++	){
-					this.collisions[ obj.type ][i]( obj , hitInfo, modifier);
-				}
-			}else{
-				this.collisions[ obj.type ]( obj , hitInfo, modifier);
-			}
-		} 
-	}
+
+	if(typeof this.collisions === 'undefined' || typeof this.collisions[obj.type] === 'undefined' || this.collisions[obj.type].length ===0 ) return;
+
+	var {action, value} = this.collisions[obj.type];
+
+	//OBJ === MOUSE.
+	//this == menu Item
+
+	this[action](value);
+
+
+
+	/*if(typeof this.collisions[ obj.type ] === 'object'){
+		for( var i = 0; i <	this.collisions[ obj.type ].length; i++	){
+			this.collisions[ obj.type ][i]( obj , hitInfo, modifier);
+		}
+	}else{
+		this.collisions[ obj.type ]( obj , hitInfo, modifier);
+	}*/
 };
 
 //types of collisions

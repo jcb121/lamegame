@@ -1,17 +1,18 @@
-var collide = require('../functions/collisions').collide;
+var collide = require('./functions/collisions').collide;
 function MenuItem( props ){
 	this.type = 'menuItem';
 	this.ready = true; //always ready as no assets
-	
-	for (var attrname in props) { 
-		this[attrname] = props[attrname]; 
+	this.static = true;
+
+	for (let attrName in props) {
+		this[attrName] = props[attrName];
 	}
 	
 	if( props.collisions != undefined){
 		
 		this.collisions = {};
-		for (let attrname in props.collisions) { 
-			this.collisions[attrname] = props.collisions[attrname]; 
+		for (let attrName in props.collisions) {
+			this.collisions[attrName] = props.collisions[attrName];
 		}
 		this.collisions.parent = this;		
 	}

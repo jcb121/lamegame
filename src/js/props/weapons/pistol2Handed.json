@@ -1,4 +1,4 @@
-module.exports = {
+{
 	
 	animation:"twoHanded",
 	name:"Pistol 2 handed",
@@ -29,4 +29,4 @@ module.exports = {
 	bulletSize:3,
 	
 	
-};
+}

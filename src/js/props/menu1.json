@@ -13,12 +13,9 @@
 			"width":150,
 			"bearing":0,
 			"collisions":{
-				"mouseObject":function(mouse){
-					if(mouse.down){
-						if( mouse.clickDelay.ready() ){ //error here
-							this.parent.setMode("classic");
-						}
-					}
+				"mouseObject":{
+					"action":"setMode",
+					"value":"classic"
 				}
 			}
 		},
@@ -32,7 +29,7 @@
 			"y":0,
 			"height":50,
 			"width":150,
-			"bearing":0,
+			"bearing":0
 		},
 		{
 			"text":"Credits",
@@ -47,7 +44,7 @@
 			"bearing":0,
 		},
 		{
-			"text":this.playerCount,
+			"text":"playerCount",
 			"textColor":"white",
 			"boxColor":"black",
 			"fontSize":20,
@@ -56,20 +53,7 @@
 			"y":250,
 			"height":50,
 			"width":150,
-			"bearing":0,
-			update:function(){
-				var allPads = navigator.getGamepads();
-				var pads = [];
-				for( var i = 0; i< allPads.length; i++){
-					if(allPads[i] != undefined) pads.push( allPads[i] ); 
-					
-				}
-				this.playerCount = pads.length; 
-				this.text = this.playerCount;
-				//console.log(this);
-				return pads.length;
-			},
+			"bearing":0
 		}
-	],
-	
+	]
 }

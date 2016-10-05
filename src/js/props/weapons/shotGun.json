@@ -1,9 +1,9 @@
-module.exports = {
+{
 	
 	animation:"twoHandedB",
-	name:"Machine Gun",
+	name:"Shotgun",
 	
-	fireSound: { volume:1, src: "sounds/M60_machine_gun_single_shot_close_perspective_01_SFXBible_ss06806.mp3" },
+	fireSound: { volume:1, src: "sounds/12_gauge_SPAS-12_shotgun_single_shot_close_perspective_05_SFXBible_ss06854.mp3" },
 	startSound: { volume:0.5, src: "sounds/Shotgun_cock_movement_BLASTWAVEFX_09296.mp3" } ,
 	
 	gunHeldSrc:"images/pistol.png",
@@ -16,13 +16,15 @@ module.exports = {
 	
 	hands:2,
 	weight:2,
-	useRate:20,
+	useRate:2,
 	
-	ammo:500,
-	clip:100,
-	reloadTime:5,
+	ammo:50,
+	clip: 6,
+	reloadTime: 4,
 	
-	accuracy:5, //in degrees.
+	accuracy:3, //in degrees.
+	bulletsPerFire:6, //spread in degrees.
+	bulletSpread:10,
 	bulletSpeed:1024,
 	bulletSize:3,
-};
+}
