@@ -15,7 +15,7 @@ module.exports = function( objects, modifier ){
 			combinations.push([objectA, objectB]);
 		});
 	});
-
+	//console.log(combinations);
 	combinations.forEach(function(objects){
 		objects[0].hitboxCords.forEach(function(hitBoxA){
 			objects[1].hitboxCords.forEach(function(hitBoxB){
@@ -24,14 +24,12 @@ module.exports = function( objects, modifier ){
 			});
 		});
 	});
-
+	//console.log(collisions);
 	collisions.forEach(function(collision){
 		if( typeof collision[0].collide === 'function'){
 			collision[0].collide( collision[1], collision[2], modifier );
 			//a ( b )
-		}
-
-		if( typeof collision[1].collide === 'function'){
+		}else if( typeof collision[1].collide === 'function'){
 			collision[2].flip = true;
 			collision[1].collide( collision[0], collision[2], modifier );
 			//b ( a )

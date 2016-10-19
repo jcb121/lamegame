@@ -1,4 +1,4 @@
-function Camera(following){
+/*function CameraOld(following){
 	
 	var frame;
 	
@@ -360,7 +360,7 @@ function Camera(following){
 			ctx.strokeStyle = '#003300';
 			ctx.stroke();
 			
-		} */
+		}
 	}	
 	
 	this.drawCords = function(){
@@ -368,5 +368,90 @@ function Camera(following){
 				
 	};
 }
+*/
+var HitBox = require('./hitbox');
+var collide = require('../functions/collisions').collide;
+
+class Camera{
+	constructor(canvas){
+		this.ready = true;
+		this.debug = true;
+
+		this.collisions = {
+			'mouseObject':{
+				'action':"drag"
+			}
+		};
+
+		this.x = 0;
+		this.y = 0;
+		this.height = canvas.height;
+		this.width = canvas.width;
+		this.scale = 1;
+		this.bearing = 0;
+		this.debug = true;
+
+		this.state = 'default';
+		let hitBox = {
+			'default':{
+				'hitBoxes':[{
+					'x': 0-canvas.width / 2,
+					'y': 0-canvas.height / 2,
+					'width': canvas.width,
+					'height': canvas.height
+				}]
+			}
+		};
+		this.hitBox = new HitBox(hitBox);
+		this.hitBox.parent = this;
+
+	}
+	drag(mouse){
+
+		if(mouse.down){
+			this.x += mouse.x - mouse.lastX;
+			this.y += mouse.y - mouse.lastY;
+		}
+	}
+	update(modifier){
+
+		console.log(this.x);
+		this.following = this.parent.players;
+		this.hitboxCords = this.hitBox.update();
+
+		if(this.following > 0){
+			console.log(this.following);
+			//average all....
+			var x = 0;
+			var y = 0;
+
+			this.following.forEach(function(child){
+				x += child.x;
+				y += child.y;
+			});
+
+			this.x = x / this.following.length;
+			this.y = y / this.following.length;
+		}
+	}
+	draw(canvas){
+		var x = canvas.width/2;
+		var y = canvas.height/2;
+		var ctx = canvas.getContext('2d');
+
+		x -= this.x;
+		y -= this.y;
+
+		ctx.font = "48px serif";
+		ctx.fillText("world", 0, 0);
+
+		this.hitBox.draw(ctx, 'green');
+
+		ctx.translate( x, y);
+		this.hitBox.draw(ctx, 'red');
+	}
+
+}
+Camera.prototype.collide = collide;
 
 module.exports = Camera;

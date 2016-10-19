@@ -4,10 +4,7 @@ var collide = function( obj, hitInfo, modifier ){
 
 	var {action, value} = this.collisions[obj.type];
 
-	//OBJ === MOUSE.
-	//this == menu Item
-
-	this[action](value);
+	this[action](obj, value);
 
 
 

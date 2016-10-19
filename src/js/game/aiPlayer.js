@@ -5,60 +5,49 @@ var takeDamage = require('../functions/health').takeDamage;
 var getDistance = require('../functions/math').getDistance;
 var DeBounce = require('../functions/deBounce');
 var SoundClip = require('../soundClip');
+var Animation = require('./animation');
+var HitBox = require('./hitbox');
+
+var getBearing = require('../functions/math').getBearing;
 
 class AiPlayer{
 	constructor(props){
 
-		console.log(props);
-
+		this.debug = true;
 		this.type  = "AiPlayer";
 
 		for (let attr in props) {
 			this[attr] = props[attr];
 		}
 
-		this.image = new Image();
-		this.image.src = props.spriteTorseSrc;
-		this.image.onload = function(){
-			this.ready = true;
-		}.bind(this)();
+		this.hitBox = new HitBox(props.animations);
+		this.hitBox.parent = this;
 
+		this.animation = new Animation(props);
+		this.animation.parent = this;
+		this.animation.onReady(function(ani){
+			console.log('animation ready', this, ani);
+		}.bind(this));
 
 		var zombieDyingSound = new SoundClip(this.deathSound);
-		zombieDyingSound.onload(function(){
-			console.log(this);
-		});
+		zombieDyingSound.onload(function(sound){
+			console.log('death sound ready', this, sound);
+		}.bind(this));
 
 		var zombieSpawnSound = new SoundClip(this.startSound);
-		zombieSpawnSound.onload(function(){
-			console.log(this);
-		});
+		zombieSpawnSound.onload(function(sound){
+			console.log('start sound ready', this, sound);
+			sound.play();
+		}.bind(this));
 
-
-
-
-		if (typeof props.collisions !== 'undefined') {
-			this.collisions = {};
-			for (let attrname in props.collisions) {
-				this.collisions[attrname] = props.collisions[attrname];
-			}
-			this.collisions.parent = this;
-		}
-
-		this.currentFrames = {};
-		this.startRand();	//sets X Y Bearing
+		this.startRand();
 		this.attackDelay = new DeBounce(1);
-
-
-
-
-
 
 	}
 
 	update(modifier){
 
-		this.attackDelay.update( modifier );
+
 		this.travel = this.speed * modifier;
 
 		this.tracking = this.parent.players;
@@ -110,115 +99,27 @@ class AiPlayer{
 			this.bearing = bearing;
 		}
 
-
-		this.move( this.travel, this.bearing );
-
-
-
-
 		this.state = "walking";
+		this.attackDelay.update( modifier );
+		this.move( this.travel, this.bearing );
+		this.hitboxCords = this.hitBox.update();
+		this.animation.update(modifier);
 
-		var hitBoxes = this.animations[ this.state ].hitBoxes;
-
-		this.hitboxCords = [ //array of all cords Cord being one square.....
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[0].x,
-				yOffset: hitBoxes[0].y,
-				width: hitBoxes[0].width,
-				height: hitBoxes[0].height,
-				bearing: this.bearing,
-
-			},
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[1].x,
-				yOffset: hitBoxes[1].y,
-				width: hitBoxes[1].width,
-				height: hitBoxes[1].height,
-				bearing: this.bearing,
-
-			},
-			{
-				x:this.x,
-				y:this.y,
-				xOffset: hitBoxes[2].x,
-				yOffset: hitBoxes[2].y,
-				width: hitBoxes[2].width,
-				height: hitBoxes[2].height,
-				bearing: this.bearing,
-
-			},
-		];
-
-		this.chooseFrame( modifier );
 	}
 
-	draw(){
-		if(  this.ready == undefined || this.ready == false ||  this.currentFrames.y == undefined ) return false;
+	draw(canvas){
+		if(typeof this.ready !== 'undefined' && this.ready !== true) return false;
 
-		this.gotoPlayer();
+		let ctx = canvas.getContext('2d');
 		ctx.save();
 
-		ctx.rotate( this.bearing * Math.PI/180);
-
-		ctx.drawImage(this.image,
-			this.frameX * (this.currentFrames.y - 1),  //start cliiping at
-			this.frameY * (this.currentFrames.x - 1),  //start cliiping at
-			this.frameX, //frameSize
-			this.frameY,  //frameSize
-			0 -this.width/2, //x
-			0 -this.height/2, //y
-			this.width ,  //output size
-			this.height  //output size
-		);
-
-		ctx.restore();
-		ctx.restore();
-	}
-
-	chooseFrame(time){
-
-		time *=1000;
-
-		if( this.layerFrameTime == undefined ) this.layerFrameTime  = 0;
-		if( this.layerCurrentFrame == undefined ) this.layerCurrentFrame =0;
-
-		var animation = this.animations[ this.state ]; //walking normally!
-
-		this.layerEachFrameTime = animation["layerTime"];
-		if (this.layerFrameTime > this.layerEachFrameTime ){
-
-			this.layerFrameTime = 0;
-
-			if(this.layerCurrentFrame > animation["layer"].length -2){
-
-				this.layerCurrentFrame = 0;
-				this.currentFrames.x = animation["layer"][ this.layerCurrentFrame ][1]
-				this.currentFrames.y = animation["layer"][ this.layerCurrentFrame ][0]
-
-			}
-			else{
-
-				this.layerCurrentFrame++;
-
-				this.currentFrames.x = animation["layer"][ this.layerCurrentFrame ][1]
-				this.currentFrames.y = animation["layer"][ this.layerCurrentFrame ][0]
-
-			}
-		}
-		else{
-			this.layerFrameTime += time;
-		}
-	}
-
-	goToPlayer(){
-		ctx.save();
 		ctx.translate(this.x, this.y);
-	}
+		ctx.rotate( this.bearing * Math.PI/180);
+		this.animation.draw(ctx);
+		this.hitBox.draw(ctx);
 
+		ctx.restore();
+	}
 }
 
 AiPlayer.prototype.startRand = startRand;

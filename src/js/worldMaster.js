@@ -19,9 +19,8 @@ class WorldMaster{
 		this.loadingScreen = new LoadScreen();
 	}
 	setMode(mode){
-		
 		if(typeof this.children[mode] === 'undefined'){
-			this.children[mode] = this.modes[mode](this.canvas);
+			this.children[mode] = new this.modes[mode](this.canvas);
 		}
 		this.mode = mode;
 	}

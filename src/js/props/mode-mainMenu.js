@@ -26,14 +26,10 @@ class MainMenu{
 			menuItem.parent = this;
 			this.children.push(menuItem);
 		}.bind(this));
+
 		var mouse = new MouseObject(canvas);
 		mouse.parent = this;
 		this.children.push(mouse);
-
-
-		mouse.click(()=>{
-			console.log("here");
-		});
 
 	}
 	update(delta){

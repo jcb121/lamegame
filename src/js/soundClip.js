@@ -26,11 +26,10 @@ function SoundClip( props ){
 
 SoundClip.prototype = {
 	onload:function(callback){
-
 		this.onloadCallback = callback;
 
 		if(this.ready){
-			callback();
+			callback(this);
 		}
 
 	},
@@ -73,7 +72,7 @@ SoundClip.prototype = {
 				self.sound = theBuffer;
 				self.ready = true;
 				if(typeof self.onloadCallback === 'function'){
-					self.onloadCallback();
+					self.onloadCallback(self);
 				}
 
 			}, function(e){

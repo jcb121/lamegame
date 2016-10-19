@@ -1,6 +1,6 @@
 var AiPlayer = require('./aiPlayer.js');
 var WorldProp = require('../worldProp');
-var zombieProps = require('./aiPlayer/ai-config.json');
+var zombieProps = require('../props/aiPlayer/ai-config.json');
 var DeBounce = require('../functions/deBounce');
 
 

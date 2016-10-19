@@ -36,11 +36,11 @@ function worldProp( props ){
 	
 	this.spawner = [];
 	if( typeof props.spawns !== 'undefined' ){
-		
-		for( var i = 0; i < props.spawns.length; i++){	
-			this.spawner[i] = new Tool( props.spawns[i] );	
-		}
-	
+
+		props.spawns.forEach(function(spawn, index){
+			console.log(spawn);
+			this.spawner[index] = new Tool(spawn);
+		}.bind(this));
 	}
 	
 }

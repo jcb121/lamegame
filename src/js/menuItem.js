@@ -21,8 +21,10 @@ function MenuItem( props ){
 }
 
 MenuItem.prototype = {
-	setMode:function(mode){
-		this.parent.setMode(mode);
+	setMode:function(mouse, mode){
+		if(mouse.down){
+			this.parent.setMode(mode);
+		}
 	},
 	update:function(){
 		
